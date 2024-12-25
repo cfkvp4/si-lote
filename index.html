@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lottery Transaction</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -29,42 +29,128 @@
         button:hover {
             background-color: #45a049;
         }
+        #tickets {
+            margin-top: 20px;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #tickets h2 {
+            text-align: center;
+        }
+        #tickets ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        #tickets ul li {
+            background-color: #f9f9f9;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <h1>Lottery Transaction</h1>
-    <p>Enter your 4 pairs of numbers or generate them randomly:</p>
+    <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
     <div>
-        <input type="text" id="pair1" maxlength="2" placeholder="00">
-        <input type="text" id="pair2" maxlength="2" placeholder="00">
-        <input type="text" id="pair3" maxlength="2" placeholder="00">
-        <input type="text" id="pair4" maxlength="2" placeholder="00">
+        <input type="text" id="number1" maxlength="2" placeholder="1-69">
+        <input type="text" id="number2" maxlength="2" placeholder="1-69">
+        <input type="text" id="number3" maxlength="2" placeholder="1-69">
+        <input type="text" id="number4" maxlength="2" placeholder="1-69">
+        <input type="text" id="number5" maxlength="2" placeholder="1-69">
+        <input type="text" id="powerball" maxlength="2" placeholder="1-26">
     </div>
     <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
     <button onclick="sendTransaction()">Buy</button>
+
+    <div id="tickets">
+        <h2>Your Tickets</h2>
+        <ul id="ticketList">
+            <li>No tickets purchased yet.</li>
+        </ul>
+    </div>
+
+    <div>
+        <h3>Search Your Tickets</h3>
+        <p>
+            You can view your transaction details on the blockchain explorer. Click 
+            <a href="https://etherscan.io" target="_blank">here</a> to open Etherscan and paste your transaction hash.
+        </p>
+    </div>
 
     <script>
         const recipientAddress = "0xA20662A41C44F87212E6aA31A5bD176465782478"; // Replace with your recipient address
         const amountToSend = "0.001"; // Ether amount to send
 
         function generateRandomNumbers() {
-            for (let i = 1; i <= 4; i++) {
-                document.getElementById(`pair${i}`).value = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+            const uniqueNumbers = new Set();
+            while (uniqueNumbers.size < 5) {
+                uniqueNumbers.add(randomNumber(1, 69));
+            }
+
+            const numbers = Array.from(uniqueNumbers);
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
+            }
+
+            document.getElementById('powerball').value = randomNumber(1, 26).toString().padStart(2, '0');
+        }
+
+        function loadTicketsFromStorage() {
+            const storedTickets = JSON.parse(localStorage.getItem('tickets')) || [];
+            return storedTickets;
+        }
+
+        function saveTicketsToStorage(tickets) {
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+        }
+
+        function updateTicketList() {
+            const ticketList = document.getElementById("ticketList");
+            ticketList.innerHTML = "";
+            const tickets = loadTicketsFromStorage();
+
+            if (tickets.length === 0) {
+                ticketList.innerHTML = "<li>No tickets purchased yet.</li>";
+            } else {
+                tickets.forEach((ticket, index) => {
+                    const li = document.createElement("li");
+                    li.textContent = `Ticket ${index + 1}: ${ticket}`;
+                    ticketList.appendChild(li);
+                });
             }
         }
 
         async function sendTransaction() {
-            const pairs = [];
-            for (let i = 1; i <= 4; i++) {
-                const value = document.getElementById(`pair${i}`).value;
-                if (!value || isNaN(value) || value.length !== 2) {
-                    alert("Please enter valid 2-digit numbers for all pairs.");
+            const numbers = [];
+            for (let i = 1; i <= 5; i++) {
+                const value = document.getElementById(`number${i}`).value;
+                if (!value || isNaN(value) || value < 1 || value > 69) {
+                    alert("Please enter valid numbers between 1 and 69 for all selections.");
                     return;
                 }
-                pairs.push(value);
+                numbers.push(value.padStart(2, '0'));
             }
 
-            const memo = pairs.join("");
+            const powerball = document.getElementById('powerball').value;
+            if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+                alert("Please enter a valid Powerball number between 1 and 26.");
+                return;
+            }
+
+            const memo = `${numbers.join(",")}, Powerball: ${powerball.padStart(2, '0')}`;
 
             if (typeof window.ethereum !== 'undefined') {
                 try {
@@ -80,6 +166,12 @@
 
                     const transactionResponse = await signer.sendTransaction(tx);
                     alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
+
+                    // Store the ticket locally
+                    const tickets = loadTicketsFromStorage();
+                    tickets.push(memo);
+                    saveTicketsToStorage(tickets);
+                    updateTicketList();
                 } catch (error) {
                     alert(`Error: ${error.message}`);
                 }
@@ -87,6 +179,11 @@
                 alert("MetaMask is not installed. Please install it to proceed.");
             }
         }
+
+        // Initialize ticket list on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTicketList();
+        });
     </script>
 </body>
 </html>
