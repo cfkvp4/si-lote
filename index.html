@@ -49,6 +49,9 @@
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         a {
             color: #007BFF;
@@ -56,6 +59,13 @@
         }
         a:hover {
             text-decoration: underline;
+        }
+        .wallet-info {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        .wallet-info button {
+            background-color: #007BFF;
         }
     </style>
 </head>
@@ -80,17 +90,18 @@
         </ul>
     </div>
 
-    <div>
-        <h3>Search Your Tickets</h3>
-        <p>
-            You can view your transaction details on the blockchain explorer. Click 
-            <a href="https://etherscan.io" target="_blank">here</a> to open Etherscan and paste your transaction hash.
-        </p>
+    <div class="wallet-info">
+        <h3>Your Wallet Address</h3>
+        <p id="walletAddress">Not connected</p>
+        <button onclick="copyWalletAddress()">Copy Address</button>
+        <a id="etherscanLink" href="#" target="_blank">View on Etherscan</a>
     </div>
 
     <script>
         const recipientAddress = "0xA20662A41C44F87212E6aA31A5bD176465782478"; // Replace with your recipient address
         const amountToSend = "0.001"; // Ether amount to send
+
+        let walletAddress = null;
 
         function generateRandomNumbers() {
             const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -127,9 +138,20 @@
             } else {
                 tickets.forEach((ticket, index) => {
                     const li = document.createElement("li");
-                    li.textContent = `Ticket ${index + 1}: ${ticket}`;
+                    li.innerHTML = `${ticket.numbers} Powerball: ${ticket.powerball} 
+                        <a href="https://etherscan.io/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
                     ticketList.appendChild(li);
                 });
+            }
+        }
+
+        function copyWalletAddress() {
+            if (walletAddress) {
+                navigator.clipboard.writeText(walletAddress).then(() => {
+                    alert("Wallet address copied to clipboard!");
+                });
+            } else {
+                alert("Wallet is not connected.");
             }
         }
 
@@ -157,6 +179,9 @@
                     await window.ethereum.request({ method: 'eth_requestAccounts' });
                     const provider = new ethers.providers.Web3Provider(window.ethereum);
                     const signer = provider.getSigner();
+                    walletAddress = await signer.getAddress();
+                    document.getElementById("walletAddress").textContent = walletAddress;
+                    document.getElementById("etherscanLink").href = `https://etherscan.io/address/${walletAddress}`;
 
                     const tx = {
                         to: recipientAddress,
@@ -167,9 +192,13 @@
                     const transactionResponse = await signer.sendTransaction(tx);
                     alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
 
-                    // Store the ticket locally
+                    // Store the ticket locally with the transaction hash
                     const tickets = loadTicketsFromStorage();
-                    tickets.push(memo);
+                    tickets.push({
+                        numbers: memo,
+                        powerball: powerball,
+                        hash: transactionResponse.hash
+                    });
                     saveTicketsToStorage(tickets);
                     updateTicketList();
                 } catch (error) {
