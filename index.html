@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottery Transaction</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        input[type="text"] {
+            margin: 5px;
+            padding: 10px;
+            width: 80px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lottery Transaction</h1>
+    <p>Enter your 4 pairs of numbers or generate them randomly:</p>
+    <div>
+        <input type="text" id="pair1" maxlength="2" placeholder="00">
+        <input type="text" id="pair2" maxlength="2" placeholder="00">
+        <input type="text" id="pair3" maxlength="2" placeholder="00">
+        <input type="text" id="pair4" maxlength="2" placeholder="00">
+    </div>
+    <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
+    <button onclick="sendTransaction()">Buy</button>
+
+    <script>
+        const recipientAddress = "0xA20662A41C44F87212E6aA31A5bD176465782478"; // Replace with your recipient address
+        const amountToSend = "0.001"; // Ether amount to send
+
+        function generateRandomNumbers() {
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`pair${i}`).value = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            }
+        }
+
+        async function sendTransaction() {
+            const pairs = [];
+            for (let i = 1; i <= 4; i++) {
+                const value = document.getElementById(`pair${i}`).value;
+                if (!value || isNaN(value) || value.length !== 2) {
+                    alert("Please enter valid 2-digit numbers for all pairs.");
+                    return;
+                }
+                pairs.push(value);
+            }
+
+            const memo = pairs.join("");
+
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    const signer = provider.getSigner();
+
+                    const tx = {
+                        to: recipientAddress,
+                        value: ethers.utils.parseEther(amountToSend),
+                        data: ethers.utils.toUtf8Bytes(memo)
+                    };
+
+                    const transactionResponse = await signer.sendTransaction(tx);
+                    alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                }
+            } else {
+                alert("MetaMask is not installed. Please install it to proceed.");
+            }
+        }
+    </script>
+</body>
+</html>
