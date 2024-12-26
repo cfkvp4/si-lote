@@ -187,124 +187,128 @@
     </div>
 
     <script>
-        const recipientAddress = "0xA20662A41C44F87212E6aA31A5bD176465782478";
-        const amountToSend = "0.001";
+       <script>
+    const recipientAddress = "0xA20662A41C44F87212E6aA31A5bD176465782478";
+    const amountToSend = "0.001";
 
-        let walletAddress = null;
+    let walletAddress = null;
 
-        function generateRandomNumbers() {
-            const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    function generateRandomNumbers() {
+        const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-            const uniqueNumbers = new Set();
-            while (uniqueNumbers.size < 5) {
-                uniqueNumbers.add(randomNumber(1, 69));
-            }
-
-            const numbers = Array.from(uniqueNumbers);
-            for (let i = 1; i <= 5; i++) {
-                document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
-            }
-
-            const powerball = randomNumber(1, 26);
-            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
-
-            // Mostrar el Powerball en la interfaz
-            const displayPowerball = document.getElementById('displayPowerball');
-            displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
+        const uniqueNumbers = new Set();
+        while (uniqueNumbers.size < 5) {
+            uniqueNumbers.add(randomNumber(1, 69));
         }
 
-        function loadTicketsFromStorage() {
-            return JSON.parse(localStorage.getItem('tickets')) || [];
+        const numbers = Array.from(uniqueNumbers);
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
         }
 
-        function saveTicketsToStorage(tickets) {
-            localStorage.setItem('tickets', JSON.stringify(tickets));
+        const powerball = randomNumber(1, 26);
+        document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
+
+        // Mostrar el Powerball en la interfaz (solo una vez)
+        const displayPowerball = document.getElementById('displayPowerball');
+        displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
+    }
+
+    function loadTicketsFromStorage() {
+        return JSON.parse(localStorage.getItem('tickets')) || [];
+    }
+
+    function saveTicketsToStorage(tickets) {
+        localStorage.setItem('tickets', JSON.stringify(tickets));
+    }
+
+    function updateTicketList() {
+        const ticketList = document.getElementById("ticketList");
+        ticketList.innerHTML = "";
+        const tickets = loadTicketsFromStorage();
+
+        if (tickets.length === 0) {
+            ticketList.innerHTML = "<li>No tickets purchased yet.</li>";
+        } else {
+            tickets.forEach((ticket) => {
+                const li = document.createElement("li");
+                // Mostrar correctamente el Powerball solo una vez
+                li.innerHTML = `${ticket.numbers} <span>Powerball: ${ticket.powerball}</span> <a href="https://sepolia.etherscan.io/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
+                ticketList.appendChild(li);
+            });
         }
+    }
 
-        function updateTicketList() {
-            const ticketList = document.getElementById("ticketList");
-            ticketList.innerHTML = "";
-            const tickets = loadTicketsFromStorage();
-
-            if (tickets.length === 0) {
-                ticketList.innerHTML = "<li>No tickets purchased yet.</li>";
-            } else {
-                tickets.forEach((ticket) => {
-                    const li = document.createElement("li");
-                    li.innerHTML = `${ticket.numbers}, Powerball: ${ticket.powerball} <a href="https://sepolia.etherscan.io/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
-                    ticketList.appendChild(li);
-                });
-            }
+    function copyWalletAddress() {
+        if (walletAddress) {
+            navigator.clipboard.writeText(walletAddress).then(() => {
+                alert("Wallet address copied to clipboard!");
+            });
+        } else {
+            alert("Wallet is not connected.");
         }
+    }
 
-        function copyWalletAddress() {
-            if (walletAddress) {
-                navigator.clipboard.writeText(walletAddress).then(() => {
-                    alert("Wallet address copied to clipboard!");
-                });
-            } else {
-                alert("Wallet is not connected.");
-            }
-        }
-
-        async function sendTransaction() {
-            const numbers = [];
-            for (let i = 1; i <= 5; i++) {
-                const value = document.getElementById(`number${i}`).value;
-                if (!value || isNaN(value) || value < 1 || value > 69) {
-                    alert("Please enter valid numbers between 1 and 69 for all selections.");
-                    return;
-                }
-                numbers.push(value.padStart(2, '0'));
-            }
-
-            const powerball = document.getElementById('powerball').value;
-            if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
-                alert("Please enter a valid Powerball number between 1 and 26.");
+    async function sendTransaction() {
+        const numbers = [];
+        for (let i = 1; i <= 5; i++) {
+            const value = document.getElementById(`number${i}`).value;
+            if (!value || isNaN(value) || value < 1 || value > 69) {
+                alert("Please enter valid numbers between 1 and 69 for all selections.");
                 return;
             }
-
-            const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
-
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    const signer = provider.getSigner();
-                    walletAddress = await signer.getAddress();
-                    document.getElementById("walletAddress").textContent = walletAddress;
-                    document.getElementById("etherscanLink").href = `https://sepolia.etherscan.io/address/${walletAddress}`;
-
-                    const tx = {
-                        to: recipientAddress,
-                        value: ethers.utils.parseEther(amountToSend),
-                        data: ethers.utils.toUtf8Bytes(memo)
-                    };
-
-                    const transactionResponse = await signer.sendTransaction(tx);
-                    alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
-
-                    // Save the ticket with transaction hash locally
-                    const tickets = loadTicketsFromStorage();
-                    tickets.push({
-                        numbers: numbers.join(", "),
-                        powerball: powerball.padStart(2, '0'),
-                        hash: transactionResponse.hash
-                    });
-                    saveTicketsToStorage(tickets);
-                    updateTicketList();
-                } catch (error) {
-                    alert(`Error: ${error.message}`);
-                }
-            } else {
-                alert("MetaMask is not installed. Please install it to proceed.");
-            }
+            numbers.push(value.padStart(2, '0'));
         }
 
-        // Initialize ticket list on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            updateTicketList();
-        });
+        const powerball = document.getElementById('powerball').value;
+        if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+            alert("Please enter a valid Powerball number between 1 and 26.");
+            return;
+        }
+
+        const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
+
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                walletAddress = await signer.getAddress();
+                document.getElementById("walletAddress").textContent = walletAddress;
+                document.getElementById("etherscanLink").href = `https://sepolia.etherscan.io/address/${walletAddress}`;
+
+                const tx = {
+                    to: recipientAddress,
+                    value: ethers.utils.parseEther(amountToSend),
+                    data: ethers.utils.toUtf8Bytes(memo)
+                };
+
+                const transactionResponse = await signer.sendTransaction(tx);
+                alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
+
+                // Save the ticket with transaction hash locally (without duplicating Powerball)
+                const tickets = loadTicketsFromStorage();
+                tickets.push({
+                    numbers: numbers.join(", "),
+                    powerball: powerball.padStart(2, '0'),
+                    hash: transactionResponse.hash
+                });
+                saveTicketsToStorage(tickets);
+                updateTicketList();
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        } else {
+            alert("MetaMask is not installed. Please install it to proceed.");
+        }
+    }
+
+    // Initialize ticket list on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        updateTicketList();
+    });
+</script>
+
     </script>
 </body>
 </html>
