@@ -3,14 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <nav>
-    <a href="index.html">Home</a>
-    <a href="Faq.html">Prize</a>
-    <a href="Prize.html">Prize</a>
-    </nav>
-  
-
-
     <title>Lottery Transaction</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
@@ -18,39 +10,101 @@
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
+            margin: 0;
+            background: linear-gradient(to bottom, #2E8BC0, #B1D4E0);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #0820f4;
         }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            margin: 0 10px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .wallet-info {
+            position: relative;
+            text-align: right;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            color: #000;
+        }
+
+        .wallet-info button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .wallet-info button:hover {
+            background-color: #0056b3;
+        }
+
         input[type="text"] {
             margin: 5px;
             padding: 10px;
             width: 80px;
             text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
+
         button {
             padding: 10px 20px;
             margin: 10px;
-            background-color: #4CAF50;
-            color: white;
+            background-color: #4c68af;
+            color: rgb(255, 255, 255);
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
+
         button:hover {
-            background-color: #45a049;
+            background-color: #455fa0;
         }
+
         #tickets {
             margin-top: 20px;
             text-align: left;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
         }
+
         #tickets h2 {
             text-align: center;
         }
+
         #tickets ul {
             list-style-type: none;
             padding: 0;
         }
+
         #tickets ul li {
             background-color: #f9f9f9;
             margin: 5px 0;
@@ -60,54 +114,53 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            color: #000;
         }
+
         a {
             color: #007BFF;
             text-decoration: none;
         }
+
         a:hover {
             text-decoration: underline;
-        }
-        .wallet-info {
-            margin-top: 20px;
-            font-size: 16px;
-        }
-        .wallet-info button {
-            background-color: #007BFF;
         }
     </style>
 </head>
 <body>
-    <h1>Lottery Transaction</h1>
-    <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
-    <div>
-        <input type="text" id="number1" maxlength="2" placeholder="1-69">
-        <input type="text" id="number2" maxlength="2" placeholder="1-69">
-        <input type="text" id="number3" maxlength="2" placeholder="1-69">
-        <input type="text" id="number4" maxlength="2" placeholder="1-69">
-        <input type="text" id="number5" maxlength="2" placeholder="1-69">
-        <input type="text" id="powerball" maxlength="2" placeholder="1-26">
-    </div>
-    <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
-    <button onclick="sendTransaction()">Buy</button>
+    <div class="container">
+        <div class="wallet-info">
+            <p><strong>Your Wallet Address</strong></p>
+            <p id="walletAddress">Not connected</p>
+            <button onclick="copyWalletAddress()">Copy Address</button>
+            <br>
+            <a id="etherscanLink" href="#" target="_blank">View on Etherscan</a>
+        </div>
 
-    <div id="tickets">
-        <h2>Your Tickets</h2>
-        <ul id="ticketList">
-            <li>No tickets purchased yet.</li>
-        </ul>
-    </div>
+        <h1>Lottery Transaction</h1>
+        <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
+        <div>
+            <input type="text" id="number1" maxlength="2" placeholder="1-69">
+            <input type="text" id="number2" maxlength="2" placeholder="1-69">
+            <input type="text" id="number3" maxlength="2" placeholder="1-69">
+            <input type="text" id="number4" maxlength="2" placeholder="1-69">
+            <input type="text" id="number5" maxlength="2" placeholder="1-69">
+            <input type="text" id="powerball" maxlength="2" placeholder="1-26">
+        </div>
+        <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
+        <button onclick="sendTransaction()">Buy</button>
 
-    <div class="wallet-info">
-        <h3>Your Wallet Address</h3>
-        <p id="walletAddress">Not connected</p>
-        <button onclick="copyWalletAddress()">Copy Address</button>
-        <a id="etherscanLink" href="#" target="_blank">View on Etherscan</a>
+        <div id="tickets">
+            <h2>Your Tickets</h2>
+            <ul id="ticketList">
+                <li>No tickets purchased yet.</li>
+            </ul>
+        </div>
     </div>
 
     <script>
-        const recipientAddress = "0xA20662A41C44F87212E6aA31A5bD176465782478"; // Replace with your recipient address
-        const amountToSend = "0.001"; // Ether amount to send
+        const recipientAddress = "0xA20662A41C44F87212E6aA31A5bD176465782478";
+        const amountToSend = "0.001";
 
         let walletAddress = null;
 
@@ -128,8 +181,7 @@
         }
 
         function loadTicketsFromStorage() {
-            const storedTickets = JSON.parse(localStorage.getItem('tickets')) || [];
-            return storedTickets;
+            return JSON.parse(localStorage.getItem('tickets')) || [];
         }
 
         function saveTicketsToStorage(tickets) {
@@ -144,10 +196,9 @@
             if (tickets.length === 0) {
                 ticketList.innerHTML = "<li>No tickets purchased yet.</li>";
             } else {
-                tickets.forEach((ticket, index) => {
+                tickets.forEach((ticket) => {
                     const li = document.createElement("li");
-                    li.innerHTML = `${ticket.numbers} Powerball: ${ticket.powerball} 
-                        <a href="https://etherscan.io/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
+                    li.innerHTML = `${ticket.numbers} <a href="https://sepolia.etherscan.io/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
                     ticketList.appendChild(li);
                 });
             }
@@ -180,7 +231,7 @@
                 return;
             }
 
-            const memo = `${numbers.join(",")}, Powerball: ${powerball.padStart(2, '0')}`;
+            const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
 
             if (typeof window.ethereum !== 'undefined') {
                 try {
@@ -189,7 +240,7 @@
                     const signer = provider.getSigner();
                     walletAddress = await signer.getAddress();
                     document.getElementById("walletAddress").textContent = walletAddress;
-                    document.getElementById("etherscanLink").href = `https://etherscan.io/address/${walletAddress}`;
+                    document.getElementById("etherscanLink").href = `https://sepolia.etherscan.io/address/${walletAddress}`;
 
                     const tx = {
                         to: recipientAddress,
@@ -200,27 +251,27 @@
                     const transactionResponse = await signer.sendTransaction(tx);
                     alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
 
-                    // Store the ticket locally with the transaction hash
-                    const tickets = loadTicketsFromStorage();
-                    tickets.push({
-                        numbers: memo,
-                        powerball: powerball,
-                        hash: transactionResponse.hash
-                    });
-                    saveTicketsToStorage(tickets);
-                    updateTicketList();
-                } catch (error) {
-                    alert(`Error: ${error.message}`);
-                }
-            } else {
-                alert("MetaMask is not installed. Please install it to proceed.");
-            }
-        }
+// Save the ticket with transaction hash locally
+const tickets = loadTicketsFromStorage();
+tickets.push({
+    numbers: numbers.join(", "),
+    powerball: powerball.padStart(2, '0'),
+    hash: transactionResponse.hash
+});
+saveTicketsToStorage(tickets);
+updateTicketList();
+} catch (error) {
+alert(`Error: ${error.message}`);
+}
+} else {
+alert("MetaMask is not installed. Please install it to proceed.");
+}
+}
 
-        // Initialize ticket list on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            updateTicketList();
-        });
-    </script>
+// Initialize ticket list on page load
+document.addEventListener('DOMContentLoaded', () => {
+updateTicketList();
+});
+</script>
 </body>
 </html>
