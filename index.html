@@ -125,6 +125,13 @@
         a:hover {
             text-decoration: underline;
         }
+
+        #displayPowerball {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF0000;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -139,6 +146,24 @@
 
         <h1>Lottery Transaction</h1>
         <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
+        
+        <style>
+            /* Estiliza las primeras cinco casillas */
+            input[type="text"]:not(#powerball) {
+                font-size: 24px; /* Tamaño grande */
+                font-weight: bold; /* Negrita */
+                border: 2px solid #4CAF50; /* Borde verde */
+                color: #000; /* Color del texto negro */
+            }
+        
+            /* Estiliza la sexta casilla (Powerball) */
+            #powerball {
+                font-size: 24px; /* Tamaño grande */
+                font-weight: bold; /* Negrita */
+                border: 2px solid #FF0000; /* Borde rojo */
+                color: #FF0000; /* Color del texto rojo */
+            }
+        </style>        
         <div>
             <input type="text" id="number1" maxlength="2" placeholder="1-69">
             <input type="text" id="number2" maxlength="2" placeholder="1-69">
@@ -147,6 +172,9 @@
             <input type="text" id="number5" maxlength="2" placeholder="1-69">
             <input type="text" id="powerball" maxlength="2" placeholder="1-26">
         </div>
+        
+        <p id="displayPowerball"></p>
+
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
         <button onclick="sendTransaction()">Buy</button>
 
@@ -177,7 +205,12 @@
                 document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
             }
 
-            document.getElementById('powerball').value = randomNumber(1, 26).toString().padStart(2, '0');
+            const powerball = randomNumber(1, 26);
+            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
+
+            // Mostrar el Powerball en la interfaz
+            const displayPowerball = document.getElementById('displayPowerball');
+            displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
         }
 
         function loadTicketsFromStorage() {
@@ -198,7 +231,7 @@
             } else {
                 tickets.forEach((ticket) => {
                     const li = document.createElement("li");
-                    li.innerHTML = `${ticket.numbers} <a href="https://sepolia.etherscan.io/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
+                    li.innerHTML = `${ticket.numbers}, Powerball: ${ticket.powerball} <a href="https://sepolia.etherscan.io/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
                     ticketList.appendChild(li);
                 });
             }
@@ -251,27 +284,27 @@
                     const transactionResponse = await signer.sendTransaction(tx);
                     alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
 
-// Save the ticket with transaction hash locally
-const tickets = loadTicketsFromStorage();
-tickets.push({
-    numbers: numbers.join(", "),
-    powerball: powerball.padStart(2, '0'),
-    hash: transactionResponse.hash
-});
-saveTicketsToStorage(tickets);
-updateTicketList();
-} catch (error) {
-alert(`Error: ${error.message}`);
-}
-} else {
-alert("MetaMask is not installed. Please install it to proceed.");
-}
-}
+                    // Save the ticket with transaction hash locally
+                    const tickets = loadTicketsFromStorage();
+                    tickets.push({
+                        numbers: numbers.join(", "),
+                        powerball: powerball.padStart(2, '0'),
+                        hash: transactionResponse.hash
+                    });
+                    saveTicketsToStorage(tickets);
+                    updateTicketList();
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                }
+            } else {
+                alert("MetaMask is not installed. Please install it to proceed.");
+            }
+        }
 
-// Initialize ticket list on page load
-document.addEventListener('DOMContentLoaded', () => {
-updateTicketList();
-});
-</script>
+        // Initialize ticket list on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTicketList();
+        });
+    </script>
 </body>
 </html>
