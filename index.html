@@ -14,9 +14,29 @@
             background: linear-gradient(to bottom, #2E8BC0, #B1D4E0);
             height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             color: #0820f4;
+        }
+
+        nav {
+            background-color: #4c68af;
+            padding: 10px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 16px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
         }
 
         .container {
@@ -26,21 +46,6 @@
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
             max-width: 600px;
             width: 100%;
-        }
-
-        nav {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        nav a {
-            margin: 0 10px;
-            color: #007BFF;
-            text-decoration: none;
-        }
-
-        nav a:hover {
-            text-decoration: underline;
         }
 
         .wallet-info {
@@ -135,6 +140,13 @@
     </style>
 </head>
 <body>
+    <nav>
+        <a href="#">Home</a>
+        <a href="#lottery">Lottery</a>
+        <a href="#tickets">My Tickets</a>
+        <a href="#contact">Contact</a>
+    </nav>
+
     <div class="container">
         <div class="wallet-info">
             <p><strong>Your Wallet Address</strong></p>
@@ -145,24 +157,7 @@
         </div>
         <h1>Lottery Transaction</h1>
         <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
-        
-        <style>
-            /* Estiliza las primeras cinco casillas */
-            input[type="text"]:not(#powerball) {
-                font-size: 20px; /* Tamaño grande */
-                font-weight: bold; /* Negrita */
-                border: 2px solid #4CAF50; /* Borde verde */
-                color: #000; /* Color del texto negro */
-            }
-        
-            /* Estiliza la sexta casilla (Powerball) */
-            #powerball {
-                font-size: 20px; /* Tamaño grande */
-                font-weight: bold; /* Negrita */
-                border: 2px solid #FF0000; /* Borde rojo */
-                color: #FF0000; /* Color del texto rojo */
-            }
-        </style>        
+
         <div>
             <input type="text" id="number1" maxlength="2" placeholder="1-69">
             <input type="text" id="number2" maxlength="2" placeholder="1-69">
@@ -171,14 +166,13 @@
             <input type="text" id="number5" maxlength="2" placeholder="1-69">
             <input type="text" id="powerball" maxlength="2" placeholder="1-26">
         </div>
-        
+
         <p id="displayPowerball"></p>
 
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
         <button onclick="sendTransaction()">Buy</button>
 
         <div id="tickets">
-            </div>
             <h2>Your Tickets</h2>
             <ul id="ticketList">
                 <li>No tickets purchased yet.</li>
@@ -208,7 +202,6 @@
             const powerball = randomNumber(1, 26);
             document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
 
-            // Mostrar el Powerball en la interfaz
             const displayPowerball = document.getElementById('displayPowerball');
             displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
         }
@@ -284,7 +277,6 @@
                     const transactionResponse = await signer.sendTransaction(tx);
                     alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
 
-                    // Save the ticket with transaction hash locally
                     const tickets = loadTicketsFromStorage();
                     tickets.push({
                         numbers: numbers.join(", "),
@@ -301,7 +293,6 @@
             }
         }
 
-        // Initialize ticket list on page load
         document.addEventListener('DOMContentLoaded', () => {
             updateTicketList();
         });
