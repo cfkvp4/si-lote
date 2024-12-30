@@ -1,232 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
+   <!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <nav>
-    <a href="index.html">Home</a>
-    <a href="Faq.html">Prize</a>
-    <a href="Prize.html">Prize</a>
-    </nav>
-    <title>Lotería Global</title>
+    <title>ETH Sepolia Number Lottery</title>
     <style>
         body {
-            font-family: 'Poppins', Arial, sans-serif;
-            line-height: 1.6;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom, #f4f4f9, #e8f5e9);
-            color: #333;
-        }
-        header {
-            background: linear-gradient(90deg, #4CAF50, #009688);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        header h1 {
-            font-size: 2.5em;
-            margin: 0;
-        }
-        main {
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
-        }
-        .prize-circle {
-            width: 350px;
-            height: 350px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #FFD700, #FF8C00);
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 40px auto;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            height: 100vh;
+            color: #333;
         }
-        .prize-circle span {
-            font-size: 3.5em;
-            font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
-        }
-        .date-info {
-            font-size: 1.5em;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .date-info p {
-            margin: 10px 0;
-        }
-        .highlight {
-            color: #FF5722;
-            font-weight: bold;
-        }
-        section {
-            margin-bottom: 40px;
+        .container {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 70%;
             padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
-        section h2 {
-            font-size: 1.8em;
-            color: #4CAF50;
-            margin-bottom: 20px;
+        h1 {
+            font-size: 2.5em;
+            color: #1a73e8;
         }
-        ul {
-            list-style: none;
-            padding: 0;
+        .wallet-address {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff6347;
+            word-wrap: break-word;
+            margin-bottom: 10px;
         }
-        ul li {
-            margin: 10px 0;
+        .balance {
             font-size: 1.2em;
-            padding-left: 20px;
-            position: relative;
+            color: #32cd32;
         }
-        ul li:before {
-            content: "\2022";
-            color: #4CAF50;
-            font-size: 1.5em;
-            position: absolute;
-            left: 0;
-            top: 0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th {
-            background: #4CAF50;
-            color: white;
-            font-weight: bold;
-        }
-        th, td {
+        select {
             padding: 10px;
-            text-align: center;
-        }
-        footer {
-            text-align: center;
-            padding: 20px;
-            background: #4CAF50;
-            color: white;
-            margin-top: 40px;
-        }
-        footer p {
-            margin: 0;
+            margin-bottom: 20px;
+            font-size: 1em;
         }
     </style>
 </head>
 <body>
+    <nav>
+    <a href="index.html">Home</a>
+    </nav>
+    <div class="container">
+    <nav>
+        <a href="index.html">Home</a>
+    </nav>
+        <h1>ETH Sepolia Testnet Number Lottery</h1>
+        <label for="networkSelector">Number Lottery:</label>
+        <select id="networkSelector">
+            <option value="https://ethereum-sepolia-rpc.publicnode.com">Ethereum Sepolia</option>
+        </select>
 
-<header>
-    <h1>Lotería Global</h1>
-</header>
+        <h2>Jackpot</h2>
+        <p class="wallet-address" id="walletAddress">0x489a8756c18c0b8b24ec2a2b9ff3d4d447f79bec</p>
+        <p class="balance" id="walletBalance">Cargando balance...</p>
+    </div>
 
-<main>
-    <section>
-        <div class="prize-circle">
-            <span>$1,000,000</span>
-        </div>
-        <div class="date-info">
-            <p><strong>Fecha del Sorteo:</strong> <span class="highlight">31 de Diciembre de 2024</span></p>
-            <p><strong>Fecha Límite para Participar:</strong> <span class="highlight">30 de Diciembre de 2024</span></p>
-        </div>
-    </section>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script>
+        const walletAddress = "0x489a8756c18c0b8b24ec2a2b9ff3d4d447f79bec";
+        const networkSelector = document.getElementById("networkSelector");
+        const walletBalanceElement = document.getElementById("walletBalance");
 
-    <section>
-        <h2>🤑 ¿Cómo se reparte?</h2>
-        <ul>
-            <li><strong>Ganador:</strong> 🏆 ¡El 60%!</li>
-            <li><strong>Fundación:</strong> 💙 El 20% se destina a financiar una iniciativa de dividendo Universal.</li>
-            <li><strong>Puntos de Venta:</strong> 🛒 El 4% se reparte entre tiendas que vendan más de 120 boletos.</li>
-            <li><strong>Referidos:</strong> 👥 Si tu amigo gana usando tu código, ganas el 1% del total del pozo.</li>
-            <li><strong>Donación:</strong> 🤝 El 10% se destina a apoyar iniciativas sociales.</li>
-        </ul>
-        <p>🌟 ¡Únete ahora y sé parte del cambio! 💫 Cada boleto cuenta para ganar y ayudar.</p>
-    </section>
+        async function getWalletBalance() {
+            try {
+                const selectedRpc = networkSelector.value;
+                console.log(`Selected RPC URL: ${selectedRpc}`); // Log the selected RPC URL
 
-    <section>
-        <h2>Probabilidades de Powerball®</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Combinación (Números Acertados)</th>
-                    <th>Premio</th>
-                    <th>Probabilidades (1 entre)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>5 + Powerball</td>
-                    <td>Gran Premio</td>
-                    <td>292,201,338.00</td>
-                </tr>
-                <tr>
-                    <td>5</td>
-                    <td>$5</td>
-                    <td>11,688,053.52</td>
-                </tr>
-                <tr>
-                    <td>4 + Powerball</td>
-                    <td>$4</td>
-                    <td>913,129.18</td>
-                </tr>
-                <tr>
-                    <td>4</td>
-                    <td>$3</td>
-                    <td>36,525.17</td>
-                </tr>
-                <tr>
-                    <td>3 + Powerball</td>
-                    <td>$1</td>
-                    <td>14,494.11</td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>$0</td>
-                    <td>579.76</td>
-                </tr>
-                <tr>
-                    <td>2 + Powerball</td>
-                    <td>$0</td>
-                    <td>701.33</td>
-                </tr>
-                <tr>
-                    <td>1 + Powerball</td>
-                    <td>$0</td>
-                    <td>91.98</td>
-                </tr>
-                <tr>
-                    <td>Powerball solo</td>
-                    <td>$0</td>
-                    <td>38.32</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
+                const provider = new ethers.providers.JsonRpcProvider(selectedRpc);
+                const balance = await provider.getBalance(walletAddress);
+                const balanceInEth = ethers.utils.formatEther(balance);
 
-    <section>
-        <h2>Reglas</h2>
-        <ul>
-            <li><strong>Costo:</strong> 1 USD</li>
-            <li><strong>Selecciona tus números</strong> o genera tus números de manera automática.</li>
-            <li><strong>Anuncio de fecha límite para participar.</strong></li>
-            <li><strong>Anuncio de fecha del sorteo.</strong></li>
-            <li><strong>Los ganadores del premio tienen 1 mes para reclamar su premio.</strong></li>
-            <li><strong>Si no hay ganadores, el bote se acumula para el próximo sorteo.</strong></li>
-        </ul>
-    </section>
-</main>
+                if (isNaN(balanceInEth)) {
+                    throw new Error("Invalid balance format");
+                }
 
-<footer>
-    <p>&copy; 2024 Lotería Global. Todos los derechos reservados.</p>
-</footer>
+                console.log(`Wallet balance: ${balanceInEth} ETH`); // Log the fetched balance
+                walletBalanceElement.textContent = `Balance: ${balanceInEth} ETH`;
+            } catch (error) {
+                console.error("Error al obtener el balance:", error);
+                walletBalanceElement.textContent = "Error al cargar el balance. Revisa tu conexión.";
+            }
+        }
 
+        networkSelector.addEventListener("change", () => {
+            console.log("Network selector changed."); // Log the change event
+            getWalletBalance();
+        });
+
+        // Obtener balance inicial
+        getWalletBalance();
+    </script>
 </body>
 </html>
