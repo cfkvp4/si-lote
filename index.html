@@ -169,7 +169,7 @@
             <br>
             <a id="etherscanLink" href="#" target="_blank">View on Etherscan</a>
         </div>
-        <h1>Lottery Transaction</h1>
+        <h1>ETH Sepolia Testnet Number Lottery</h1>
         <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
 
         <div>
@@ -255,61 +255,70 @@
         }
 
         async function sendTransaction() {
-            const numbers = [];
-            for (let i = 1; i <= 5; i++) {
-                const value = document.getElementById(`number${i}`).value;
-                if (!value || isNaN(value) || value < 1 || value > 69) {
-                    alert("Please enter valid numbers between 1 and 69 for all selections.");
-                    return;
-                }
-                numbers.push(value.padStart(2, '0'));
-            }
+    const numbers = [];
+    for (let i = 1; i <= 5; i++) {
+        const value = document.getElementById(`number${i}`).value;
+        if (!value || isNaN(value) || value < 1 || value > 69) {
+            alert("Please enter valid numbers between 1 and 69 for all selections.");
+            return;
+        }
+        numbers.push(value.padStart(2, '0'));
+    }
 
-            const powerball = document.getElementById('powerball').value;
-            if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
-                alert("Please enter a valid Powerball number between 1 and 26.");
+    const powerball = document.getElementById('powerball').value;
+    if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+        alert("Please enter a valid Powerball number between 1 and 26.");
+        return;
+    }
+
+    const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
+
+    if (typeof window.ethereum !== 'undefined') {
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+
+            // Verificar la red antes de proceder con la transacción
+            const network = await provider.getNetwork();
+            if (network.chainId !== 11155111) { // Chain ID de Sepolia
+                alert("Estás conectado a la red incorrecta. Por favor, cambia a la red Sepolia para continuar.");
                 return;
             }
 
-            const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
+            walletAddress = await signer.getAddress();
+            document.getElementById("walletAddress").textContent = walletAddress;
+            document.getElementById("etherscanLink").href = `https://sepolia.etherscan.io/address/${walletAddress}`;
 
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    const signer = provider.getSigner();
-                    walletAddress = await signer.getAddress();
-                    document.getElementById("walletAddress").textContent = walletAddress;
-                    document.getElementById("etherscanLink").href = `https://sepolia.etherscan.io/address/${walletAddress}`;
+            const tx = {
+                to: recipientAddress,
+                value: ethers.utils.parseEther(amountToSend),
+                data: ethers.utils.toUtf8Bytes(memo)
+            };
 
-                    const tx = {
-                        to: recipientAddress,
-                        value: ethers.utils.parseEther(amountToSend),
-                        data: ethers.utils.toUtf8Bytes(memo)
-                    };
+            const transactionResponse = await signer.sendTransaction(tx);
+            alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
 
-                    const transactionResponse = await signer.sendTransaction(tx);
-                    alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
-
-                    const tickets = loadTicketsFromStorage();
-                    tickets.push({
-                        numbers: numbers.join(", "),
-                        powerball: powerball.padStart(2, '0'),
-                        hash: transactionResponse.hash
-                    });
-                    saveTicketsToStorage(tickets);
-                    updateTicketList();
-                } catch (error) {
-                    alert(`Error: ${error.message}`);
-                }
+            const tickets = loadTicketsFromStorage();
+            tickets.push({
+                numbers: numbers.join(", "),
+                powerball: powerball.padStart(2, '0'),
+                hash: transactionResponse.hash
+            });
+            saveTicketsToStorage(tickets);
+            updateTicketList();
+        } catch (error) {
+            if (error.code === -32603) { // Código del error Internal JSON-RPC
+                alert("Error: Parece que estás conectado a la red incorrecta. Por favor, cambia a la red Sepolia.");
             } else {
-                alert("MetaMask is not installed. Please install it to proceed.");
+                alert(`Error: ${error.message}`);
             }
         }
+    } else {
+        alert("MetaMask no está instalado. Por favor, instálalo para proceder.");
+    }
+}
 
-        document.addEventListener('DOMContentLoaded', () => {
-            updateTicketList();
-        });
     </script>
 </body>
 </html>
