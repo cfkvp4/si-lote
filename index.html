@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lottery Transaction</title>
+    <title>ETH Number Lottery</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         body {
@@ -184,7 +184,7 @@
         <p id="displayPowerball"></p>
 
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
-        <button onclick="sendTransaction()">Buy</button>
+        <button onclick="sendTransaction()">Buy 0.0005 ETH</button>
 
         <div id="tickets">
             <h2>Your Tickets</h2>
@@ -196,7 +196,7 @@
 
     <script>
         const recipientAddress = "0xA20662A41C44F87212E6aA31A5bD176465782478";
-        const amountToSend = "0.001";
+        const amountToSend = "0.0005";
 
         let walletAddress = null;
 
