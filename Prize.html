@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Number Lottery Network</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -14,7 +13,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             color: #fff;
         }
         .container {
@@ -22,48 +21,53 @@
             border-radius: 15px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
             width: 90%;
-            max-width: 600px;
-            padding: 30px;
+            max-width: 500px;
+            padding: 20px;
             text-align: center;
+            box-sizing: border-box;
         }
         h1 {
-            font-size: 2.8em;
+            font-size: 2.2em;
             margin-bottom: 10px;
             text-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
         h2 {
-            font-size: 1.5em;
+            font-size: 1.2em;
             margin: 20px 0 10px;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
-        .wallet-address, .balance {
-            font-size: 1.2em;
+        .wallet-address {
+            font-size: 0.8em; 
             font-weight: bold;
             padding: 10px;
             border-radius: 8px;
             background: rgba(255, 255, 255, 0.2);
             display: inline-block;
             margin: 5px 0;
-            word-wrap: break-word;
+            white-space: nowrap;
+            overflow-x: auto; 
+            text-align: left; 
+            max-width: 100%;
+            box-sizing: border-box;
         }
         .balance {
-            font-size: 2.5em;
+            font-size: 1.8em;
             color: #f9d423;
         }
         select {
-            width: 80%;
-            max-width: 300px;
-            padding: 12px;
+            width: 100%;
+            padding: 10px;
             font-size: 1em;
             margin: 20px 0;
             border: none;
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.8);
             color: #333;
+            box-sizing: border-box;
         }
         button {
-            padding: 12px 25px;
+            padding: 10px 20px;
             font-size: 1em;
             margin-top: 20px;
             background: #f9d423;
@@ -72,9 +76,50 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background 0.3s;
+            width: 100%;
+            max-width: 300px;
+            box-sizing: border-box;
         }
         button:hover {
             background: #ff9d2f;
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            h2 {
+                font-size: 1em;
+            }
+            .balance {
+                font-size: 1.5em;
+            }
+            select {
+                font-size: 0.9em;
+                padding: 8px;
+            }
+            button {
+                font-size: 0.9em;
+                padding: 8px 16px;
+            }
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.6em;
+            }
+            .balance {
+                font-size: 1.3em;
+            }
+            select {
+                font-size: 0.8em;
+                padding: 6px;
+            }
+            button {
+                font-size: 0.8em;
+                padding: 6px 12px;
+            }
         }
     </style>
 </head>
