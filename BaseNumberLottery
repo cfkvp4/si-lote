@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETH Number Lottery</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            background: linear-gradient(to bottom, #2E8BC0, #B1D4E0);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #0820f4;
+        }
+
+        nav {
+            background-color: #4c68af;
+            padding: 10px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 16px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .wallet-info {
+            position: relative;
+            text-align: right;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            color: #000;
+        }
+
+        .wallet-info button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .wallet-info button:hover {
+            background-color: #0056b3;
+        }
+
+        input[type="text"] {
+            margin: 5px;
+            padding: 10px;
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2E8BC0;
+            background-color: #f9f9f9;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="text"]#powerball {
+            color: #FF0000;
+            border: 2px solid #FF0000;
+            background-color: #FFF5F5;
+            box-shadow: 0px 4px 8px rgba(255, 0, 0, 0.3);
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #4c68af;
+            color: rgb(255, 255, 255);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #455fa0;
+        }
+
+        #tickets {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        #tickets h2 {
+            text-align: center;
+        }
+
+        #tickets ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #tickets ul li {
+            background-color: #f9f9f9;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #000;
+        }
+
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        #displayPowerball {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF0000;
+            margin-top: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .alert {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: fadeOut 5s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            80% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="#">Home</a>
+        <a href="HowDoPlay">How Do Play</a>
+        <a href="Prize">Prize</a>
+        <a href="ClaimYourPrize">Claim</a>
+    </nav>
+
+    <div class="container">
+        <div class="wallet-info">
+            <p><strong>Your Wallet Address</strong></p>
+            <p id="walletAddress">Not connected</p>
+            <button onclick="copyWalletAddress()">Copy Address</button>
+            <br>
+            <a id="etherscanLink" href="#" target="_blank">View on BaseScan</a>
+        </div>
+        <h1>Base Mainnet Number Lottery</h1>
+        <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
+
+        <div>
+            <input type="text" id="number1" maxlength="2" placeholder="1-69">
+            <input type="text" id="number2" maxlength="2" placeholder="1-69">
+            <input type="text" id="number3" maxlength="2" placeholder="1-69">
+            <input type="text" id="number4" maxlength="2" placeholder="1-69">
+            <input type="text" id="number5" maxlength="2" placeholder="1-69">
+            <input type="text" id="powerball" maxlength="2" placeholder="1-26">
+        </div>
+
+        <p id="displayPowerball"></p>
+
+        <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
+        <button onclick="sendTransaction()">Buy 0.0006 ETH</button>
+
+        <div id="tickets">
+            <h2>Your Tickets</h2>
+            <ul id="ticketList">
+                <li>No tickets purchased yet.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const recipientAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73"; // Cambia si es necesario
+        const amountToSend = "0.0006";
+
+        let walletAddress = null;
+
+        function generateRandomNumbers() {
+            const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+            const uniqueNumbers = new Set();
+            while (uniqueNumbers.size < 5) {
+                uniqueNumbers.add(randomNumber(1, 69));
+            }
+
+            const numbers = Array.from(uniqueNumbers);
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
+            }
+
+            const powerball = randomNumber(1, 26);
+            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
+
+            const displayPowerball = document.getElementById('displayPowerball');
+            displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
+        }
+
+        function loadTicketsFromStorage() {
+            return JSON.parse(localStorage.getItem('tickets')) || [];
+        }
+
+        function saveTicketsToStorage(tickets) {
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+        }
+
+        function updateTicketList() {
+            const ticketList = document.getElementById("ticketList");
+            ticketList.innerHTML = "";
+            const tickets = loadTicketsFromStorage();
+
+            if (tickets.length === 0) {
+                ticketList.innerHTML = "<li>No tickets purchased yet.</li>";
+            } else {
+                tickets.forEach((ticket) => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `${ticket.numbers}, Powerball: ${ticket.powerball} <a href="https://sepolia.etherscan.io/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
+                    ticketList.appendChild(li);
+                });
+            }
+        }
+
+        function copyWalletAddress() {
+            if (walletAddress) {
+                navigator.clipboard.writeText(walletAddress).then(() => {
+                    showAlert("Wallet address copied to clipboard!", "success");
+                });
+            } else {
+                showAlert("Wallet is not connected.", "error");
+            }
+        }
+
+        async function switchToBaseMainnet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x2105' }] // Base Mainnet Chain ID
+                    });
+                    showAlert("Successfully switched to Base Mainnet.", "success");
+                } catch (error) {
+                    showAlert("Could not switch network. Please do it manually in MetaMask.", "error");
+                }
+            }
+        }
+
+        async function sendTransaction() {
+    const numbers = [];
+    for (let i = 1; i <= 5; i++) {
+        const value = document.getElementById(`number${i}`).value;
+        if (!value || isNaN(value) || value < 1 || value > 69) {
+            showAlert("Please enter valid numbers between 1 and 69 for all selections.", "error");
+            return;
+        }
+        numbers.push(value.padStart(2, '0'));
+    }
+
+    const powerball = document.getElementById('powerball').value;
+    if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+        showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+        return;
+    }
+
+    const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
+
+    if (typeof window.ethereum !== 'undefined') {
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+
+            const network = await provider.getNetwork();
+            if (network.chainId !== 8453) { // Chain ID de Base Mainnet
+                showAlert("You are on the wrong network. Please switch to Base Mainnet.", "error");
+                switchToBaseMainnet();
+                return;
+            }
+
+            walletAddress = await signer.getAddress();
+            document.getElementById("walletAddress").textContent = walletAddress;
+            document.getElementById("etherscanLink").href = `https://basescan.org/address/${walletAddress}`;
+
+            // Checar el saldo disponible
+            const balance = await provider.getBalance(walletAddress);
+            const amountInWei = ethers.utils.parseEther(amountToSend);
+            if (balance.lt(amountInWei)) {
+                showAlert("Insufficient funds: Please ensure your wallet has enough ETH.", "error");
+                return;
+            }
+
+            // Preparar y enviar la transacción
+            const tx = {
+                to: recipientAddress,
+                value: amountInWei,
+                data: ethers.utils.toUtf8Bytes(memo),
+            };
+
+            const transactionResponse = await signer.sendTransaction(tx);
+
+            showAlert(`Transaction sent! TX Hash: ${transactionResponse.hash}`, "success");
+
+            const tickets = loadTicketsFromStorage();
+            tickets.push({
+                numbers: numbers.join(", "),
+                powerball: powerball.padStart(2, '0'),
+                hash: transactionResponse.hash,
+            });
+            saveTicketsToStorage(tickets);
+            updateTicketList();
+        } catch (error) {
+            console.error("Transaction Error Details:", error);
+
+            if (error.code === 4001) {
+                showAlert("Transaction canceled by the user.", "error");
+            } else {
+                showAlert(`Unexpected error: ${error.message}`, "error");
+            }
+        }
+    } else {
+        showAlert("MetaMask is not installed. Please install it to proceed.", "error");
+    }
+}
+
+
+        function showAlert(message, type) {
+
+            const alert = document.createElement("div");
+            alert.className = "alert";
+            alert.style.backgroundColor = type === "success" ? "rgba(0, 128, 0, 0.8)" : "rgba(255, 0, 0, 0.8)";
+            alert.textContent = message;
+            document.body.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        updateTicketList();
+    </script>
+</body>
+</html>
