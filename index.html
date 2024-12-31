@@ -152,6 +152,32 @@
             margin-top: 10px;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
+
+        .alert {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: fadeOut 5s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            80% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -196,7 +222,7 @@
     </div>
 
     <script>
-        const recipientAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73";
+        const recipientAddress = "0xA20662A41C44F87212E6aA31A5bD176465782478";
         const amountToSend = "0.0006";
 
         let walletAddress = null;
@@ -248,78 +274,102 @@
         function copyWalletAddress() {
             if (walletAddress) {
                 navigator.clipboard.writeText(walletAddress).then(() => {
-                    alert("Wallet address copied to clipboard!");
+                    showAlert("Wallet address copied to clipboard!", "success");
                 });
             } else {
-                alert("Wallet is not connected.");
+                showAlert("Wallet is not connected.", "error");
+            }
+        }
+
+        async function switchToSepoliaNetwork() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0xaa36a7' }] // Sepolia chain ID
+                    });
+                    showAlert("Successfully switched to Sepolia network.", "success");
+                } catch (error) {
+                    showAlert("Could not switch network. Please do it manually in MetaMask.", "error");
+                }
             }
         }
 
         async function sendTransaction() {
-    const numbers = [];
-    for (let i = 1; i <= 5; i++) {
-        const value = document.getElementById(`number${i}`).value;
-        if (!value || isNaN(value) || value < 1 || value > 69) {
-            alert("Please enter valid numbers between 1 and 69 for all selections.");
-            return;
-        }
-        numbers.push(value.padStart(2, '0'));
-    }
+            const numbers = [];
+            for (let i = 1; i <= 5; i++) {
+                const value = document.getElementById(`number${i}`).value;
+                if (!value || isNaN(value) || value < 1 || value > 69) {
+                    showAlert("Please enter valid numbers between 1 and 69 for all selections.", "error");
+                    return;
+                }
+                numbers.push(value.padStart(2, '0'));
+            }
 
-    const powerball = document.getElementById('powerball').value;
-    if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
-        alert("Please enter a valid Powerball number between 1 and 26.");
-        return;
-    }
-
-    const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
-
-    if (typeof window.ethereum !== 'undefined') {
-        try {
-            await window.ethereum.request({ method: 'eth_requestAccounts' });
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-
-            // Verificar la red antes de proceder con la transacción
-            const network = await provider.getNetwork();
-            if (network.chainId !== 11155111) { // Chain ID de Sepolia
-                alert("Estás conectado a la red incorrecta. Por favor, cambia a la red Sepolia para continuar.");
+            const powerball = document.getElementById('powerball').value;
+            if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+                showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
                 return;
             }
 
-            walletAddress = await signer.getAddress();
-            document.getElementById("walletAddress").textContent = walletAddress;
-            document.getElementById("etherscanLink").href = `https://sepolia.etherscan.io/address/${walletAddress}`;
+            const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
 
-            const tx = {
-                to: recipientAddress,
-                value: ethers.utils.parseEther(amountToSend),
-                data: ethers.utils.toUtf8Bytes(memo)
-            };
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    const signer = provider.getSigner();
 
-            const transactionResponse = await signer.sendTransaction(tx);
-            alert(`Transaction sent! TX Hash: ${transactionResponse.hash}`);
+                    // Verificar la red antes de proceder con la transacción
+                    const network = await provider.getNetwork();
+                    if (network.chainId !== 11155111) { // Chain ID de Sepolia
+                        showAlert("You are on the wrong network. Please switch to Sepolia.", "error");
+                        switchToSepoliaNetwork();
+                        return;
+                    }
 
-            const tickets = loadTicketsFromStorage();
-            tickets.push({
-                numbers: numbers.join(", "),
-                powerball: powerball.padStart(2, '0'),
-                hash: transactionResponse.hash
-            });
-            saveTicketsToStorage(tickets);
-            updateTicketList();
-        } catch (error) {
-            if (error.code === -32603) { // Código del error Internal JSON-RPC
-                alert("Error: Parece que estás conectado a la red incorrecta. Por favor, cambia a la red Sepolia.");
+                    walletAddress = await signer.getAddress();
+                    document.getElementById("walletAddress").textContent = walletAddress;
+                    document.getElementById("etherscanLink").href = `https://sepolia.etherscan.io/address/${walletAddress}`;
+
+                    const tx = {
+                        to: recipientAddress,
+                        value: ethers.utils.parseEther(amountToSend),
+                        data: ethers.utils.toUtf8Bytes(memo)
+                    };
+
+                    const transactionResponse = await signer.sendTransaction(tx);
+                    showAlert(`Transaction sent! TX Hash: ${transactionResponse.hash}`, "success");
+
+                    const tickets = loadTicketsFromStorage();
+                    tickets.push({
+                        numbers: numbers.join(", "),
+                        powerball: powerball.padStart(2, '0'),
+                        hash: transactionResponse.hash
+                    });
+                    saveTicketsToStorage(tickets);
+                    updateTicketList();
+                } catch (error) {
+                    showAlert(`Error: ${error.message}`, "error");
+                }
             } else {
-                alert(`Error: ${error.message}`);
+                showAlert("MetaMask is not installed. Please install it to proceed.", "error");
             }
         }
-    } else {
-        alert("MetaMask no está instalado. Por favor, instálalo para proceder.");
-    }
-}
 
+        function showAlert(message, type) {
+            const alert = document.createElement("div");
+            alert.className = "alert";
+            alert.style.backgroundColor = type === "success" ? "rgba(0, 128, 0, 0.8)" : "rgba(255, 0, 0, 0.8)";
+            alert.textContent = message;
+            document.body.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        updateTicketList();
     </script>
 </body>
 </html>
