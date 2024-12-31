@@ -287,89 +287,74 @@
         }
     }
 
-    async function sendTransaction() {
-        const numbers = [];
-        for (let i = 1; i <= 5; i++) {
-            const value = document.getElementById(`number${i}`).value;
-            if (!value || isNaN(value) || value < 1 || value > 69) {
-                showAlert("Please enter valid numbers between 1 and 69 for all selections.", "error");
-                return;
-            }
-            numbers.push(value.padStart(2, '0'));
-        }
-
-        const powerball = document.getElementById("powerball").value;
-        if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
-            showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+   async function sendTransaction() {
+    const numbers = [];
+    for (let i = 1; i <= 5; i++) {
+        const value = document.getElementById(`number${i}`).value;
+        if (!value || isNaN(value) || value < 1 || value > 69) {
+            showAlert("Please enter valid numbers between 1 and 69 for all selections.", "error");
             return;
         }
-
-        const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
-
-        // Codificar memo a hexadecimal
-        const memoHex = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(memo));
-
-        if (typeof window.ethereum !== "undefined") {
-            try {
-                await window.ethereum.request({ method: "eth_requestAccounts" });
-                const provider = new ethers.providers.Web3Provider(window.ethereum);
-                const network = await provider.getNetwork();
-
-                // Verifica si está en la red CELO
-                if (network.chainId !== 42220) { // CELO Mainnet chainId = 42220
-                    showAlert(
-                        "You are not connected to the CELO network. Please switch to CELO to proceed.",
-                        "error"
-                    );
-                    return;
-                }
-
-                const signer = provider.getSigner();
-                walletAddress = await signer.getAddress();
-                document.getElementById("walletAddress").textContent = walletAddress;
-                document.getElementById("explorerLink").href = `https://explorer.celo.org/address/${walletAddress}`;
-
-                const tokenContract = new ethers.Contract(
-                    tokenAddress,
-                    [
-                        "function balanceOf(address owner) view returns (uint256)",
-                        "function transfer(address to, uint256 amount, bytes memo) returns (bool)"
-                    ],
-                    signer
-                );
-
-                const balance = await tokenContract.balanceOf(walletAddress);
-                if (balance.lt(ticketPrice)) {
-                    showAlert("Insufficient G$. Please ensure you have enough tokens.", "error");
-                    return;
-                }
-
-                // Agregar memoHex como parámetro en la transferencia
-                const transactionResponse = await tokenContract.transfer(recipientAddress, ticketPrice, memoHex);
-                showAlert(`Transaction sent! TX Hash: ${transactionResponse.hash}`, "success");
-
-                const tickets = loadTicketsFromStorage();
-                tickets.push({
-                    numbers: numbers.join(", "),
-                    powerball: powerball.padStart(2, '0'),
-                    hash: transactionResponse.hash
-                });
-                saveTicketsToStorage(tickets);
-                updateTicketList();
-            } catch (err) {
-                if (err.code === "CALL_EXCEPTION") {
-                    showAlert(
-                        "Transaction failed. Please ensure you are connected to the CELO network.",
-                        "error"
-                    );
-                } else {
-                    showAlert(`Transaction failed: ${err.message}`, "error");
-                }
-            }
-        } else {
-            showAlert("MetaMask is not installed. Please install it to proceed.", "error");
-        }
+        numbers.push(value.padStart(2, '0'));
     }
+
+    const powerball = document.getElementById("powerball").value;
+    if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+        showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+        return;
+    }
+
+    // Crear el memo
+    const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
+    const memoHex = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(memo)); // Codificar memo a hexadecimal
+
+    if (typeof window.ethereum !== "undefined") {
+        try {
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const network = await provider.getNetwork();
+
+            // Verificar red CELO
+            if (network.chainId !== 42220) {
+                showAlert(
+                    "You are not connected to the CELO network. Please switch to CELO to proceed.",
+                    "error"
+                );
+                return;
+            }
+
+            const signer = provider.getSigner();
+            walletAddress = await signer.getAddress();
+            document.getElementById("walletAddress").textContent = walletAddress;
+            document.getElementById("explorerLink").href = `https://explorer.celo.org/address/${walletAddress}`;
+
+            // Crear la transacción con input data
+            const tx = {
+                to: recipientAddress, // Dirección de destino
+                value: ethers.utils.parseUnits("0", "ether"), // No se envía CELO
+                data: memoHex // Agregar el memo codificado
+            };
+
+            const transactionResponse = await signer.sendTransaction(tx);
+            showAlert(`Transaction sent! TX Hash: ${transactionResponse.hash}`, "success");
+
+            // Guardar ticket localmente
+            const tickets = loadTicketsFromStorage();
+            tickets.push({
+                numbers: numbers.join(", "),
+                powerball: powerball.padStart(2, '0'),
+                memo: memo,
+                hash: transactionResponse.hash
+            });
+            saveTicketsToStorage(tickets);
+            updateTicketList();
+        } catch (err) {
+            showAlert(`Transaction failed: ${err.message}`, "error");
+        }
+    } else {
+        showAlert("MetaMask is not installed. Please install it to proceed.", "error");
+    }
+}
 
     function showAlert(message, type) {
         const alert = document.createElement("div");
