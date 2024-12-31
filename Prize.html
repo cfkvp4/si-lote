@@ -1,105 +1,170 @@
-   <!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ETH Sepolia Number Lottery</title>
+    <title>Number Lottery Network</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f9;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            color: #333;
+            color: #fff;
         }
         .container {
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 70%;
-            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 600px;
+            padding: 30px;
             text-align: center;
         }
         h1 {
-            font-size: 2.5em;
-            color: #1a73e8;
-        }
-        .wallet-address {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #ff6347;
-            word-wrap: break-word;
+            font-size: 2.8em;
             margin-bottom: 10px;
+            text-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        h2 {
+            font-size: 1.5em;
+            margin: 20px 0 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .wallet-address, .balance {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            margin: 5px 0;
+            word-wrap: break-word;
         }
         .balance {
-            font-size: 1.2em;
-            color: #32cd32;
+            font-size: 2.5em;
+            color: #f9d423;
         }
         select {
-            padding: 10px;
-            margin-bottom: 20px;
+            width: 80%;
+            max-width: 300px;
+            padding: 12px;
             font-size: 1em;
+            margin: 20px 0;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 1em;
+            margin-top: 20px;
+            background: #f9d423;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #ff9d2f;
         }
     </style>
 </head>
 <body>
-       <div class="container">
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="BaseNumberLottery">Lo</a>
-        <a href="good">G</a>
+    <div class="container">
+        <h1>🎉 Number Lottery 🎉</h1>
 
-       
-    </nav>
-        <h1>ETH Sepolia Testnet Number Lottery</h1>
-        <label for="networkSelector">    </label>
+        <label for="networkSelector"><h2>Select a Network:</h2></label>
         <select id="networkSelector">
-            <option value="https://ethereum-sepolia-rpc.publicnode.com">Ethereum Sepolia</option>
+            <option value="base">Base Mainnet</option>
+            <option value="celo">Celo Mainnet</option>
+            <option value="polygon">Polygon Mainnet</option>
+            <option value="bnb">BNB Chain Mainnet</option>
+            <option value="ethereum">Ethereum Mainnet</option>
+            <option value="op">Optimism Mainnet</option>
+            <option value="sepolia">Ethereum Sepolia Testnet</option>
         </select>
 
-        <h2>Jackpot</h2>
-        <p class="wallet-address" id="walletAddress">0x97c9a36994138842620B4eb7d436a083C9912F73</p>
-        <p class="balance" id="walletBalance">Cargando balance...</p>
+        <h2>Jackpot Prize</h2>
+        <p class="wallet-address" id="walletAddress">Loading address...</p>
+        <p class="balance" id="walletBalance">Loading balance...</p>
+
+        <button onclick="getWalletBalance()">🔄 Refresh Balance</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script>
-        const walletAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73";
+        const networks = {
+            base: {
+                rpc: "https://mainnet.base.org",
+                address: "0xb884183Edf84c48343f55Bf84e19e5839E8e9c55",
+                symbol: "ETH"
+            },
+            celo: {
+                rpc: "https://forno.celo.org",
+                address: "0x73b364c3272D2468Dc35C7B29C74e31747945c21",
+                symbol: "CELO"
+            },
+            polygon: {
+                rpc: "https://polygon.llamarpc.com",
+                address: "0x6917F1eA4d5138F6bd7e93F0Fd3d5E727fC218bE",
+                symbol: "POL"
+            },
+            bnb: {
+                rpc: "https://bsc-dataseed.binance.org/",
+                address: "0xE63991B7FF468312b2B215E6ec7bcFdFEdAe4b68",
+                symbol: "BNB"
+            },
+            ethereum: {
+                rpc: "https://rpc.ankr.com/eth",
+                address: "0x6604a7f1B17D10045DbfBba5ecf1eA6B4855F0B7",
+                symbol: "ETH"
+            },
+            sepolia: {
+                rpc: "https://ethereum-sepolia-rpc.publicnode.com",
+                address: "0x97c9a36994138842620B4eb7d436a083C9912F73",
+                symbol: "ETH"
+            },
+            op: {
+                rpc: "https://mainnet.optimism.io",
+                address: "0xB1376C0F46ba4d24a6e14E2dC4dA7937E5fEDfdF",
+                symbol: "ETH"
+            }
+        };
+
         const networkSelector = document.getElementById("networkSelector");
         const walletBalanceElement = document.getElementById("walletBalance");
+        const walletAddressElement = document.getElementById("walletAddress");
 
         async function getWalletBalance() {
             try {
-                const selectedRpc = networkSelector.value;
-                console.log(`Selected RPC URL: ${selectedRpc}`); // Log the selected RPC URL
+                const selectedNetwork = networkSelector.value;
+                const { rpc, address, symbol } = networks[selectedNetwork];
 
-                const provider = new ethers.providers.JsonRpcProvider(selectedRpc);
-                const balance = await provider.getBalance(walletAddress);
-                const balanceInEth = ethers.utils.formatEther(balance);
+                walletAddressElement.textContent = address;
 
-                if (isNaN(balanceInEth)) {
-                    throw new Error("Invalid balance format");
-                }
+                const provider = new ethers.providers.JsonRpcProvider(rpc);
+                const balance = await provider.getBalance(address);
+                const balanceFormatted = ethers.utils.formatEther(balance);
 
-                console.log(`Wallet balance: ${balanceInEth} ETH`); // Log the fetched balance
-                walletBalanceElement.textContent = `Balance: ${balanceInEth} ETH`;
+                walletBalanceElement.textContent = `${balanceFormatted} ${symbol}`;
             } catch (error) {
-                console.error("Error al obtener el balance:", error);
-                walletBalanceElement.textContent = "Error al cargar el balance. Revisa tu conexión.";
+                console.error("Error fetching balance:", error);
+                walletBalanceElement.textContent = "Error loading balance. Check your connection.";
             }
         }
 
-        networkSelector.addEventListener("change", () => {
-            console.log("Network selector changed."); // Log the change event
-            getWalletBalance();
-        });
+        networkSelector.addEventListener("change", getWalletBalance);
 
-        // Obtener balance inicial
+        // Fetch initial balance
         getWalletBalance();
     </script>
 </body>
