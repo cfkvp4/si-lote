@@ -281,81 +281,78 @@
             }
         }
 
-        async function switchToSepoliaNetwork() {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: '0xaa36a7' }] // Sepolia chain ID
-                    });
-                    showAlert("Successfully switched to Sepolia network.", "success");
-                } catch (error) {
-                    showAlert("Could not switch network. Please do it manually in MetaMask.", "error");
-                }
-            }
-        }
-
         async function sendTransaction() {
-            const numbers = [];
-            for (let i = 1; i <= 5; i++) {
-                const value = document.getElementById(`number${i}`).value;
-                if (!value || isNaN(value) || value < 1 || value > 69) {
-                    showAlert("Please enter valid numbers between 1 and 69 for all selections.", "error");
-                    return;
-                }
-                numbers.push(value.padStart(2, '0'));
-            }
+    const numbers = [];
+    for (let i = 1; i <= 5; i++) {
+        const value = document.getElementById(`number${i}`).value;
+        if (!value || isNaN(value) || value < 1 || value > 69) {
+            showAlert("Please enter valid numbers between 1 and 69 for all selections.", "error");
+            return;
+        }
+        numbers.push(value.padStart(2, '0'));
+    }
 
-            const powerball = document.getElementById('powerball').value;
-            if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
-                showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+    const powerball = document.getElementById('powerball').value;
+    if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+        showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+        return;
+    }
+
+    const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
+
+    if (typeof window.ethereum !== 'undefined') {
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+
+            // Verificar la red antes de proceder con la transacción
+            const network = await provider.getNetwork();
+            if (network.chainId !== 11155111) { // Chain ID de Sepolia
+                showAlert("You are on the wrong network. Please switch to Sepolia.", "error");
+                switchToSepoliaNetwork();
                 return;
             }
 
-            const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
+            walletAddress = await signer.getAddress();
+            document.getElementById("walletAddress").textContent = walletAddress;
+            document.getElementById("etherscanLink").href = `https://sepolia.etherscan.io/address/${walletAddress}`;
 
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    const signer = provider.getSigner();
+            // Checar el saldo disponible
+            const balance = await provider.getBalance(walletAddress);
+            const amountInWei = ethers.utils.parseEther(amountToSend);
 
-                    // Verificar la red antes de proceder con la transacción
-                    const network = await provider.getNetwork();
-                    if (network.chainId !== 11155111) { // Chain ID de Sepolia
-                        showAlert("You are on the wrong network. Please switch to Sepolia.", "error");
-                        switchToSepoliaNetwork();
-                        return;
-                    }
-
-                    walletAddress = await signer.getAddress();
-                    document.getElementById("walletAddress").textContent = walletAddress;
-                    document.getElementById("etherscanLink").href = `https://sepolia.etherscan.io/address/${walletAddress}`;
-
-                    const tx = {
-                        to: recipientAddress,
-                        value: ethers.utils.parseEther(amountToSend),
-                        data: ethers.utils.toUtf8Bytes(memo)
-                    };
-
-                    const transactionResponse = await signer.sendTransaction(tx);
-                    showAlert(`Transaction sent! TX Hash: ${transactionResponse.hash}`, "success");
-
-                    const tickets = loadTicketsFromStorage();
-                    tickets.push({
-                        numbers: numbers.join(", "),
-                        powerball: powerball.padStart(2, '0'),
-                        hash: transactionResponse.hash
-                    });
-                    saveTicketsToStorage(tickets);
-                    updateTicketList();
-                } catch (error) {
-                    showAlert(`Error: ${error.message}`, "error");
-                }
-            } else {
-                showAlert("MetaMask is not installed. Please install it to proceed.", "error");
+            // Mostrar mensaje simple si no hay suficiente saldo
+            if (balance.lt(amountInWei)) {
+                showAlert("Insufficient funds. Please ensure your wallet has enough ETH.", "error");
+                return;
             }
+
+            // Preparar y enviar la transacción
+            const tx = {
+                to: recipientAddress,
+                value: amountInWei,
+                data: ethers.utils.toUtf8Bytes(memo),
+            };
+
+            const transactionResponse = await signer.sendTransaction(tx);
+            showAlert(`Transaction sent! TX Hash: ${transactionResponse.hash}`, "success");
+
+            const tickets = loadTicketsFromStorage();
+            tickets.push({
+                numbers: numbers.join(", "),
+                powerball: powerball.padStart(2, '0'),
+                hash: transactionResponse.hash
+            });
+            saveTicketsToStorage(tickets);
+            updateTicketList();
+        } catch (error) {
+            showAlert(`Error: ${error.message}`, "error");
         }
+    } else {
+        showAlert("MetaMask is not installed. Please install it to proceed.", "error");
+    }
+}
 
         function showAlert(message, type) {
             const alert = document.createElement("div");
