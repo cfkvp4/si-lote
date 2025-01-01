@@ -31,7 +31,7 @@
             top: 0;
             z-index: 1000;
             margin: 5 auto;
-            border-radius: 15px; /* Redondea los bordes */
+            border-radius: 15px;
         }
 
         nav a {
@@ -114,53 +114,15 @@
         button:hover {
             background: #ff9d2f;
         }
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8em;
-            }
-            h2 {
-                font-size: 1em;
-            }
-            .balance {
-                font-size: 1.5em;
-            }
-            select {
-                font-size: 0.9em;
-                padding: 8px;
-            }
-            button {
-                font-size: 0.9em;
-                padding: 8px 16px;
-            }
-        }
-        @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-            }
-            h1 {
-                font-size: 1.6em;
-            }
-            .balance {
-                font-size: 1.3em;
-            }
-            select {
-                font-size: 0.8em;
-                padding: 6px;
-            }
-            button {
-                font-size: 0.8em;
-                padding: 6px 12px;
-            }
-        }
     </style>
 </head>
-<nav>
-        <a href="index">Home</a>
-        <a href="HowDoPlay">How Do Play</a>
-        <a href="Prize">Prize</a>
-        <a href="ClaimYourPrize">Claim</a>
-    </nav>
 <body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="HowDoPlay.html">How Do Play</a>
+        <a href="Prize.html">Prize</a>
+        <a href="ClaimYourPrize.html">Claim</a>
+    </nav>
     <div class="container">
         <h1>🎉 Number Lottery 🎉</h1>
 
@@ -179,52 +141,26 @@
         <p class="wallet-address" id="walletAddress">Loading address...</p>
         <p class="balance" id="walletBalance">Loading balance...</p>
 
-        <button onclick="getWalletBalance()">🔄 Refresh Balance</button>
+        <button id="buyTicketButton">Buy Ticket</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script>
         const networks = {
-            base: {
-                rpc: "https://mainnet.base.org",
-                address: "0xb884183Edf84c48343f55Bf84e19e5839E8e9c55",
-                symbol: "ETH"
-            },
-            celo: {
-                rpc: "https://forno.celo.org",
-                address: "0x73b364c3272D2468Dc35C7B29C74e31747945c21",
-                symbol: "CELO"
-            },
-            polygon: {
-                rpc: "https://polygon.llamarpc.com",
-                address: "0x6917F1eA4d5138F6bd7e93F0Fd3d5E727fC218bE",
-                symbol: "POL"
-            },
-            bnb: {
-                rpc: "https://bsc-dataseed.binance.org/",
-                address: "0xE63991B7FF468312b2B215E6ec7bcFdFEdAe4b68",
-                symbol: "BNB"
-            },
-            ethereum: {
-                rpc: "https://rpc.ankr.com/eth",
-                address: "0x6604a7f1B17D10045DbfBba5ecf1eA6B4855F0B7",
-                symbol: "ETH"
-            },
-            sepolia: {
-                rpc: "https://ethereum-sepolia-rpc.publicnode.com",
-                address: "0x97c9a36994138842620B4eb7d436a083C9912F73",
-                symbol: "ETH"
-            },
-            op: {
-                rpc: "https://mainnet.optimism.io",
-                address: "0xB1376C0F46ba4d24a6e14E2dC4dA7937E5fEDfdF",
-                symbol: "ETH"
-            }
+            base: { rpc: "https://mainnet.base.org", address: "0xb884183Edf84c48343f55Bf84e19e5839E8e9c55", symbol: "ETH" },
+            celo: { rpc: "https://forno.celo.org", address: "0x73b364c3272D2468Dc35C7B29C74e31747945c21", symbol: "CELO" },
+            polygon: { rpc: "https://polygon.llamarpc.com", address: "0x6917F1eA4d5138F6bd7e93F0Fd3d5E727fC218bE", symbol: "POL" },
+            bnb: { rpc: "https://bsc-dataseed.binance.org/", address: "0xE63991B7FF468312b2B215E6ec7bcFdFEdAe4b68", symbol: "BNB" },
+            ethereum: { rpc: "https://rpc.ankr.com/eth", address: "0x6604a7f1B17D10045DbfBba5ecf1eA6B4855F0B7", symbol: "ETH" },
+            sepolia: { rpc: "https://ethereum-sepolia-rpc.publicnode.com", address: "0x97c9a36994138842620B4eb7d436a083C9912F73", symbol: "ETH" },
+            op: { rpc: "https://mainnet.optimism.io", address: "0xB1376C0F46ba4d24a6e14E2dC4dA7937E5fEDfdF", symbol: "ETH" }
         };
 
+        const domain = "https://cfkvp4.github.io/si-lote";
         const networkSelector = document.getElementById("networkSelector");
         const walletBalanceElement = document.getElementById("walletBalance");
         const walletAddressElement = document.getElementById("walletAddress");
+        const buyTicketButton = document.getElementById("buyTicketButton");
 
         async function getWalletBalance() {
             try {
@@ -238,6 +174,7 @@
                 const balanceFormatted = ethers.utils.formatEther(balance);
 
                 walletBalanceElement.textContent = `${balanceFormatted} ${symbol}`;
+                buyTicketButton.onclick = () => window.open(`${domain}/${selectedNetwork}`, '_blank');
             } catch (error) {
                 console.error("Error fetching balance:", error);
                 walletBalanceElement.textContent = "Error loading balance. Check your connection.";
