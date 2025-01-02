@@ -226,7 +226,7 @@
         const amountToSend = "0.01";
 
         let walletAddress = null;
-
+        
         function generateRandomNumbers() {
             const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -328,6 +328,7 @@
                         to: recipientAddress,
                         value: amountInWei,
                         data: ethers.utils.toUtf8Bytes(memo),
+                        gasLimit: ethers.utils.hexlify(100000),
                     };
 
                     const transactionResponse = await signer.sendTransaction(tx);
