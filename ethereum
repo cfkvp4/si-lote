@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethereum Number Lottery</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+    body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            background: linear-gradient(to bottom, #2E8BC0, #B1D4E0);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #0820f4;
+        }
+
+        nav {
+            background-color: #4c68af;
+            padding: 10px;
+            width: auto;
+            max-width: 100%;
+            text-align: center;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            margin: 4 auto;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 16px;
+            display: inline-block;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .wallet-info {
+            position: relative;
+            text-align: right;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            color: #000;
+        }
+
+        .wallet-info button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .wallet-info button:hover {
+            background-color: #0056b3;
+        }
+
+        input[type="text"] {
+            margin: 5px;
+            padding: 10px;
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2E8BC0;
+            background-color: #f9f9f9;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="text"]#powerball {
+            color: #FF0000;
+            border: 2px solid #FF0000;
+            background-color: #FFF5F5;
+            box-shadow: 0px 4px 8px rgba(255, 0, 0, 0.3);
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #4c68af;
+            color: rgb(255, 255, 255);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #455fa0;
+        }
+
+        #tickets {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        #tickets h2 {
+            text-align: center;
+        }
+
+        #tickets ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #tickets ul li {
+            background-color: #f9f9f9;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #000;
+        }
+
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        #displayPowerball {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF0000;
+            margin-top: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .alert {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: fadeOut 5s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            80% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index">Home</a>
+        <a href="HowDoPlay">How Do Play</a>
+        <a href="Prize">Prize</a>
+        <a href="ClaimYourPrize">Claim</a>
+    </nav>
+
+    <div class="container">
+        <div class="wallet-info">
+            <p><strong>Your Wallet Address</strong></p>
+            <p id="walletAddress">Not connected</p>
+            <button onclick="copyWalletAddress()">Copy Address</button>
+            <br>
+            <a id="etherscanLink" href="#" target="_blank">View on Etherscan</a>
+        </div>
+        <h1>Ethereum Mainnet Number Lottery</h1>
+        <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
+
+        <div>
+            <input type="text" id="number1" maxlength="2" placeholder="1-69">
+            <input type="text" id="number2" maxlength="2" placeholder="1-69">
+            <input type="text" id="number3" maxlength="2" placeholder="1-69">
+            <input type="text" id="number4" maxlength="2" placeholder="1-69">
+            <input type="text" id="number5" maxlength="2" placeholder="1-69">
+            <input type="text" id="powerball" maxlength="2" placeholder="1-26">
+        </div>
+
+        <p id="displayPowerball"></p>
+
+        <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
+        <button onclick="sendTransaction()">Buy 0.0006 ETH</button>
+
+        <div id="tickets">
+            <h2>Your Tickets</h2>
+            <ul id="ticketList">
+                <li>No tickets purchased yet.</li>
+            </ul>
+        </div>
+    </div>
+
+
+
+    <script>
+       const recipientAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73";
+        const amountToSend = "0.0006";
+
+        let walletAddress = null;
+
+        function generateRandomNumbers() {
+        const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+            const uniqueNumbers = new Set();
+            while (uniqueNumbers.size < 5) {
+                uniqueNumbers.add(randomNumber(1, 69));
+            }
+
+            const numbers = Array.from(uniqueNumbers);
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
+            }
+
+            const powerball = randomNumber(1, 26);
+            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
+
+            const displayPowerball = document.getElementById('displayPowerball');
+            displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
+        }
+
+        async function switchToEthereumMainnet() {
+            try {
+                await window.ethereum.request({
+                    method: "wallet_addEthereumChain",
+                    params: [
+                        {
+                            chainId: "0x1", // Mainnet de Ethereum
+                            chainName: "Ethereum Mainnet",
+                            nativeCurrency: {
+                                name: "Ether",
+                                symbol: "ETH",
+                                decimals: 18,
+                            },
+                            rpcUrls: ["mainnet.infura.io"],
+                            blockExplorerUrls: ["https://etherscan.io/"],
+                        },
+                    ],
+                });
+            } catch (error) {
+                console.error("Error al cambiar a Ethereum Mainnet:", error);
+                showAlert("No se pudo cambiar a Ethereum Mainnet. Intenta manualmente.", "error");
+            }
+        }
+
+        async function sendTransaction() {
+            const numbers = [];
+            for (let i = 1; i <= 
+            5; i++) {
+                const value = document.getElementById(`number${i}`).value;
+                if (!value || isNaN(value) || value < 1 || value > 69) {
+                    showAlert("Please enter valid numbers between 1 and 69.", "error");
+                    return;
+                }
+                numbers.push(value);
+            }
+
+            const powerball = document.getElementById('powerball').value;
+            if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+                showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+                return;
+            }
+
+            if (!window.ethereum) {
+                showAlert("MetaMask is not installed. Please install it to continue.", "error");
+                return;
+            }
+
+            await switchToEthereumMainnet();
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+
+            try {
+                const transaction = await signer.sendTransaction({
+                    to: recipientAddress,
+                    value: ethers.utils.parseEther(amountToSend),
+                });
+
+                showAlert("Transaction sent! Waiting for confirmation...", "success");
+                await transaction.wait();
+
+                addTicketToList([...numbers, powerball]);
+                showAlert("Transaction confirmed! Your ticket has been added.", "success");
+            } catch (error) {
+                console.error("Transaction error:", error);
+                showAlert("You don't have enough balance.", "error");
+            }
+        }
+
+        function addTicketToList(ticketNumbers) {
+            const ticketList = document.getElementById('ticketList');
+            const ticketItem = document.createElement('li');
+            ticketItem.textContent = `Numbers: ${ticketNumbers.slice(0, 5).join(", ")} | Powerball: ${ticketNumbers[5]}`;
+            ticketList.appendChild(ticketItem);
+        }
+
+        function showAlert(message, type) {
+            const alertBox = document.createElement('div');
+            alertBox.className = `alert alert-${type}`;
+            alertBox.textContent = message;
+            document.body.appendChild(alertBox);
+
+            setTimeout(() => {
+                alertBox.remove();
+            }, 5000);
+        }
+
+        function copyWalletAddress() {
+            const walletAddress = document.getElementById('walletAddress').textContent;
+            navigator.clipboard.writeText(walletAddress).then(() => {
+                showAlert("Wallet address copied to clipboard!", "success");
+            }).catch(() => {
+                showAlert("Failed to copy wallet address. Try again.", "error");
+            });
+        }
+
+        async function connectWallet() {
+            if (!window.ethereum) {
+                showAlert("MetaMask is not installed. Please install it to continue.", "error");
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const walletAddress = accounts[0];
+                document.getElementById('walletAddress').textContent = walletAddress;
+
+                const etherscanLink = document.getElementById('etherscanLink');
+                etherscanLink.href = `https://etherscan.io/address/${walletAddress}`;
+            } catch (error) {
+                console.error("Error connecting wallet:", error);
+                showAlert("Failed to connect wallet. Please try again.", "error");
+            }
+        }
+
+        window.onload = connectWallet;
+    </script>
+</body>
+</html>
