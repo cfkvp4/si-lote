@@ -220,7 +220,7 @@
         <p id="displayPowerball"></p>
 
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
-        <button onclick="sendTransaction()">Buy 0.00008 BNB</button>
+        <button onclick="sendTransaction()">Buy 0.0006 BNB</button>
 
         <div id="tickets">
             <h2>Your Tickets</h2>
@@ -232,8 +232,8 @@
 
 
     <script>
-       const recipientAddress = "0xeAc26dbDAD105F2e7Ff4339DFf88B11A868551E5";
-        const amountToSend = "0.00008";
+       const recipientAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73";
+        const amountToSend = "0.0006";
 
         let walletAddress = null;
 
@@ -270,7 +270,7 @@
                                 symbol: "BNB",
                                 decimals: 18,
                             },
-                            rpcUrls: ["https://binance.llamarpc.com"],
+                            rpcUrls: ["https://bsc-dataseed.binance.org/"],
                             blockExplorerUrls: ["https://bscscan.com/"],
                         },
                     ],
@@ -313,22 +313,11 @@
     const memoEncoded = ethers.utils.toUtf8Bytes(memo); // Codificar a bytes UTF-8
 
     try {
-        try {
-    const transaction = await signer.sendTransaction({
-        to: recipientAddress,
-        value: ethers.utils.parseEther(amountToSend),
-        gasLimit: ethers.utils.hexlify(100000),
-        gasPrice: ethers.utils.parseUnits('10', 'gwei'),
-        data: ethers.utils.hexlify(memoEncoded),
-        chainId: 56,
-    });
-    await transaction.wait();
-    showAlert("Transaction confirmed!", "success");
-} catch (error) {
-    console.error("Transaction error:", error);
-    showAlert(`Transaction failed: ${error.message}`, "error");
-}
-
+        const transaction = await signer.sendTransaction({
+            to: recipientAddress,
+            value: ethers.utils.parseEther(amountToSend),
+            data: ethers.utils.hexlify(memoEncoded), // Convertir a formato hexadecimal
+        });
 
         showAlert("Transaction sent! Waiting for confirmation...", "success");
         await transaction.wait();
@@ -340,7 +329,6 @@
         showAlert("You don't have enough balance.", "error");
     }
 }
-
 
         function addTicketToList(ticketNumbers) {
             const ticketList = document.getElementById('ticketList');
