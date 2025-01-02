@@ -281,44 +281,77 @@
             }
         }
 
-        async function sendTransaction() {
+async function sendTransaction() {
     try {
         // Obtener y validar números
         const numbers = [];
         for (let i = 1; i <= 5; i++) {
             const value = document.getElementById(`number${i}`).value;
-            if (!value || isNaN(value) || value < 1 || value > 69) throw new Error("Invalid number");
+            if (!value || isNaN(value) || value < 1 || value > 69) {
+                throw new Error("Please enter valid numbers between 1 and 69 for all selections.");
+            }
             numbers.push(value.padStart(2, '0'));
         }
 
         const powerball = document.getElementById('powerball').value;
-        if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) throw new Error("Invalid Powerball number");
+        if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+            throw new Error("Please enter a valid Powerball number between 1 and 26.");
+        }
 
         const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
-        
+
+        if (typeof window.ethereum === 'undefined') {
+            throw new Error("MetaMask is not installed. Please install it to proceed.");
+        }
+
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-        const balance = await provider.getBalance(await signer.getAddress());
+
+        const network = await provider.getNetwork();
+        if (network.chainId !== 42220) { // Chain ID para CELO Mainnet
+            throw new Error("You are on the wrong network. Please switch to CELO Mainnet.");
+        }
+
+        const walletAddress = await signer.getAddress();
+        const balance = await provider.getBalance(walletAddress);
         const amountInWei = ethers.utils.parseEther(amountToSend);
 
-        if (balance.lt(amountInWei)) throw new Error("Insufficient funds");
+        if (balance.lt(amountInWei)) {
+            throw new Error("Insufficient funds. Please ensure your wallet has enough CELO.");
+        }
 
+        // Definir la transacción
         const tx = {
             to: recipientAddress,
             value: amountInWei,
             data: ethers.utils.toUtf8Bytes(memo),
         };
 
-        const gasEstimate = await provider.estimateGas(tx);
-        tx.gasLimit = gasEstimate;
+        // Estimar el gas y agregarlo a la transacción
+        tx.gasLimit = await provider.estimateGas(tx);
 
+        // Enviar la transacción
         const transactionResponse = await signer.sendTransaction(tx);
         console.log("Transaction sent:", transactionResponse);
+
+        showAlert(`Transaction sent! TX Hash: ${transactionResponse.hash}`, "success");
+
+        const tickets = loadTicketsFromStorage();
+        tickets.push({
+            numbers: numbers.join(", "),
+            powerball: powerball.padStart(2, '0'),
+            hash: transactionResponse.hash,
+        });
+        saveTicketsToStorage(tickets);
+        updateTicketList();
     } catch (error) {
         console.error("Transaction Error:", error);
         showAlert(`Error: ${error.message}`, "error");
     }
 }
+
+        
                     const network = await provider.getNetwork();
                     if (network.chainId !== 42220) { // Chain ID para CELO Mainnet
                         showAlert("You are on the wrong network. Please switch to CELO Mainnet.", "error");
