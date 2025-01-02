@@ -313,13 +313,22 @@
     const memoEncoded = ethers.utils.toUtf8Bytes(memo); // Codificar a bytes UTF-8
 
     try {
-        const transaction = await signer.sendTransaction({
-    to: recipientAddress,
-    value: ethers.utils.parseEther(amountToSend),
-    gasLimit: ethers.utils.hexlify(21000), // Ajusta el límite si es necesario
-    gasPrice: ethers.utils.parseUnits('5', 'gwei'), // Ajusta según la red
-    data: ethers.utils.hexlify(memoEncoded),
-        });
+        try {
+    const transaction = await signer.sendTransaction({
+        to: recipientAddress,
+        value: ethers.utils.parseEther(amountToSend),
+        gasLimit: ethers.utils.hexlify(60000),
+        gasPrice: ethers.utils.parseUnits('10', 'gwei'),
+        data: ethers.utils.hexlify(memoEncoded),
+        chainId: 56,
+    });
+    await transaction.wait();
+    showAlert("Transaction confirmed!", "success");
+} catch (error) {
+    console.error("Transaction error:", error);
+    showAlert(`Transaction failed: ${error.message}`, "error");
+}
+
 
         showAlert("Transaction sent! Waiting for confirmation...", "success");
         await transaction.wait();
