@@ -314,9 +314,11 @@
 
     try {
         const transaction = await signer.sendTransaction({
-            to: recipientAddress,
-            value: ethers.utils.parseEther(amountToSend),
-            data: ethers.utils.hexlify(memoEncoded), // Convertir a formato hexadecimal
+    to: recipientAddress,
+    value: ethers.utils.parseEther(amountToSend),
+    gasLimit: ethers.utils.hexlify(21000), // Ajusta el límite si es necesario
+    gasPrice: ethers.utils.parseUnits('5', 'gwei'), // Ajusta según la red
+    data: ethers.utils.hexlify(memoEncoded),
         });
 
         showAlert("Transaction sent! Waiting for confirmation...", "success");
