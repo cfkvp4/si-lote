@@ -221,7 +221,7 @@
         <p id="displayPowerball"></p>
 
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
-        <button onclick="sendTransaction()">Buy 0.0006 MATIC</button>
+        <button onclick="sendTransaction()">Buy 4 POL</button>
 
         <div id="tickets">
             <h2>Your Tickets</h2>
@@ -231,11 +231,9 @@
         </div>
     </div>
 
-
-
     <script>
-        const recipientAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73";
-        const amountToSend = "0.0006";
+        const recipientAddress = "0x00d73E6780b18c932e39028ec74481B6D48C26Ca";
+        const amountToSend = "4";
 
         let walletAddress = null;
 
@@ -265,7 +263,7 @@
                     method: "wallet_addEthereumChain",
                     params: [
                         {
-                            chainId: "0x89", // 137 en decimal
+                            chainId: "0x89", // 137 in decimal
                             chainName: "Polygon Mainnet",
                             nativeCurrency: {
                                 name: "POL",
@@ -278,15 +276,14 @@
                     ],
                 });
             } catch (error) {
-                console.error("Error al cambiar a Polygon:", error);
-                showAlert("No se pudo cambiar a Polygon. Intenta manualmente.", "error");
+                console.error("Error switching to Polygon:", error);
+                showAlert("Could not switch to Polygon. Try manually.", "error");
             }
         }
 
         async function sendTransaction() {
             const numbers = [];
-            for (let i = 1; i <= 
-            5; i++) {
+            for (let i = 1; i <= 5; i++) {
                 const value = document.getElementById(`number${i}`).value;
                 if (!value || isNaN(value) || value < 1 || value > 69) {
                     showAlert("Please enter valid numbers between 1 and 69.", "error");
@@ -324,7 +321,8 @@
                 showAlert("Transaction confirmed! Your ticket has been added.", "success");
             } catch (error) {
                 console.error("Transaction error:", error);
-                showAlert("You don't have enough balance.", "error");}
+                showAlert("You don't have enough balance.", "error");
+            }
         }
 
         function addTicketToList(ticketNumbers) {
