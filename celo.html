@@ -316,6 +316,15 @@
                     document.getElementById("walletAddress").textContent = walletAddress;
                     document.getElementById("explorerLink").href = `https://explorer.celo.org/address/${walletAddress}`;
 
+                    // Obtener el precio actual del gas
+            const gasPrice = await provider.getGasPrice();
+
+            // Estimar el gas para la transacción
+            const estimatedGas = await provider.estimateGas(tx);
+
+            // Agregar gasPrice y gasLimit a la transacción
+            tx.gasLimit = estimatedGas;
+            tx.gasPrice = gasPrice;
                     
                     const balance = await provider.getBalance(walletAddress);
                     const amountInWei = ethers.utils.parseEther(amountToSend);
@@ -329,7 +338,6 @@
                         to: recipientAddress,
                         value: amountInWei,
                         data: ethers.utils.toUtf8Bytes(memo),
-                        gasLimit: ethers.utils.hexlify(21000),
                     };
 
                     const transactionResponse = await signer.sendTransaction(tx);
