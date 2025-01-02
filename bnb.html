@@ -317,7 +317,7 @@
     const transaction = await signer.sendTransaction({
         to: recipientAddress,
         value: ethers.utils.parseEther(amountToSend),
-        gasLimit: ethers.utils.hexlify(60000),
+        gasLimit: ethers.utils.hexlify(100000),
         gasPrice: ethers.utils.parseUnits('10', 'gwei'),
         data: ethers.utils.hexlify(memoEncoded),
         chainId: 56,
