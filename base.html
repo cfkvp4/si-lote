@@ -222,8 +222,8 @@
     </div>
 
     <script>
-        const recipientAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73"; // Cambia si es necesario
-        const amountToSend = "0.0000006";
+        const recipientAddress = "0xafFE39FfCc12Fb563430a55aF5C06c4EA523B58b"; // wallet
+        const amountToSend = "0.0006";
 
         let walletAddress = null;
 
@@ -331,7 +331,6 @@
             document.getElementById("walletAddress").textContent = walletAddress;
             document.getElementById("etherscanLink").href = `https://basescan.org/address/${walletAddress}`;
 
-            // Checar el saldo disponible
             const balance = await provider.getBalance(walletAddress);
             const amountInWei = ethers.utils.parseEther(amountToSend);
             if (balance.lt(amountInWei)) {
@@ -339,7 +338,6 @@
                 return;
             }
 
-            // Preparar y enviar la transacción
             const tx = {
                 to: recipientAddress,
                 value: amountInWei,
