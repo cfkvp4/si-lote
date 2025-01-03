@@ -260,52 +260,62 @@
         }
 
         async function sendTransaction() {
-            const numbers = [];
-            for (let i = 1; i <= 5; i++) {
-                const value = document.getElementById(`number${i}`).value;
-                if (!value || isNaN(value) || value < 1 || value > 69) {
-                    showAlert("Please enter valid numbers between 1 and 69.", "error");
-                    return;
-                }
-                numbers.push(value);
-            }
-
-            const powerball = document.getElementById('powerball').value;
-            if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
-                showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
-                return;
-            }
-
-            if (!window.ethereum) {
-                showAlert("MetaMask is not installed. Please install it to continue.", "error");
-                return;
-            }
-
-            await switchToCeloNetwork();
-
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-
-            const memo = `Numbers: ${numbers.join(", ")} | Powerball: ${powerball}`;
-            const memoEncoded = ethers.utils.toUtf8Bytes(memo);
-
-            try {
-                const transaction = await signer.sendTransaction({
-                    to: recipientAddress,
-                    value: ethers.utils.parseEther(amountToSend),
-                    data: ethers.utils.hexlify(memoEncoded),
-                });
-
-                showAlert("Transaction sent! Waiting for confirmation...", "success");
-                await transaction.wait();
-
-                addTicketToList([...numbers, powerball]);
-                showAlert("Transaction confirmed! Your ticket has been added.", "success");
-            } catch (error) {
-                console.error("Transaction error:", error);
-                showAlert("You don't have enough balance.", "error");
-            }
+    const numbers = [];
+    for (let i = 1; i <= 5; i++) {
+        const value = document.getElementById(`number${i}`).value;
+        if (!value || isNaN(value) || value < 1 || value > 69) {
+            showAlert("Please enter valid numbers between 1 and 69.", "error");
+            return;
         }
+        numbers.push(value);
+    }
+
+    const powerball = document.getElementById('powerball').value;
+    if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+        showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+        return;
+    }
+
+    if (!window.ethereum) {
+        showAlert("MetaMask is not installed. Please install it to continue.", "error");
+        return;
+    }
+
+    await switchToCeloNetwork();
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+
+    try {
+        const balance = await provider.getBalance(await signer.getAddress());
+        const transactionCost = ethers.utils.parseEther(amountToSend);
+
+        // Check if balance is sufficient
+        if (balance.lt(transactionCost)) {
+            showAlert("Insufficient balance to complete this transaction.", "error");
+            return;
+        }
+
+        const memo = `Numbers: ${numbers.join(", ")} | Powerball: ${powerball}`;
+        const memoEncoded = ethers.utils.toUtf8Bytes(memo);
+
+        const transaction = await signer.sendTransaction({
+            to: recipientAddress,
+            value: transactionCost,
+            data: ethers.utils.hexlify(memoEncoded),
+        });
+
+        showAlert("Transaction sent! Waiting for confirmation...", "success");
+        await transaction.wait();
+
+        addTicketToList([...numbers, powerball]);
+        showAlert("Transaction confirmed! Your ticket has been added.", "success");
+    } catch (error) {
+        console.error("Transaction error:", error);
+        showAlert("Transaction failed. Please check your wallet and try again.", "error");
+    }
+}
+
 
         function generateRandomNumbers() {
             const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
