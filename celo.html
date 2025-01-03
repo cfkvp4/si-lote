@@ -220,7 +220,7 @@
         <p id="displayPowerball"></p>
 
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
-        <button onclick="sendTransaction()">Buy 0.1 CELO</button>
+        <button onclick="sendTransaction()">Buy 3 CELO</button>
 
         <div id="tickets">
             <h2>Your Tickets</h2>
@@ -230,33 +230,20 @@
         </div>
     </div>
 
-    
     <script>
-        const recipientAddress = "0x289C354d857049d26FfFdb69EAB33A708407D9f8";
-        const amountToSend = "0.1";
+        const recipientAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73";
+        const amountToSend = "3";
 
-        let walletAddress = null;
-        
         function generateRandomNumbers() {
-            const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    for (let i = 1; i <= 5; i++) {
+        const randomNumber = Math.floor(Math.random() * 69) + 1;
+        document.getElementById(`number${i}`).value = randomNumber;
+    }
 
-            const uniqueNumbers = new Set();
-            while (uniqueNumbers.size < 5) {
-                uniqueNumbers.add(randomNumber(1, 69));
-            }
+    const powerballNumber = Math.floor(Math.random() * 26) + 1;
+    document.getElementById('powerball').value = powerballNumber;
+}
 
-            const numbers = Array.from(uniqueNumbers);
-            for (let i = 1; i <= 5; i++) {
-                document.getElementById(number${i}).value = numbers[i - 1].toString().padStart(2, '0');
-            }
-
-            const powerball = randomNumber(1, 26);
-            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
-
-            const displayPowerball = document.getElementById('displayPowerball');
-            displayPowerball.textContent = Powerball: ${powerball.toString().padStart(2, '0')};
-        }
-        
 
         async function switchToCeloChain() {
     try {
@@ -304,7 +291,13 @@ async function sendTransaction() {
         return;
     }
 
-    await switchToCeloChain();
+    try {
+        await switchToCeloChain();
+    } catch (error) {
+        console.error("Error switching to Celo chain:", error);
+        showAlert("Failed to switch to Celo network. Try again.", "error");
+        return;
+    }
 
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
@@ -313,6 +306,12 @@ async function sendTransaction() {
     const memoEncoded = ethers.utils.toUtf8Bytes(memo);
 
     try {
+        const balance = await provider.getBalance(await signer.getAddress());
+        if (balance.lt(ethers.utils.parseEther(amountToSend))) {
+            showAlert("Insufficient balance to complete the transaction.", "error");
+            return;
+        }
+
         const transaction = await signer.sendTransaction({
             to: recipientAddress,
             value: ethers.utils.parseEther(amountToSend),
@@ -326,9 +325,10 @@ async function sendTransaction() {
         showAlert("Transaction confirmed! Your ticket has been added.", "success");
     } catch (error) {
         console.error("Transaction error:", error);
-        showAlert("You don't have enough balance.", "error");
+        showAlert("Transaction failed. Please check your wallet and try again.", "error");
     }
 }
+
 
 function addTicketToList(ticketNumbers) {
     const ticketList = document.getElementById('ticketList');
