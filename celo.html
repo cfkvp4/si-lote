@@ -230,20 +230,33 @@
         </div>
     </div>
 
+    
     <script>
         const recipientAddress = "0x289C354d857049d26FfFdb69EAB33A708407D9f8";
         const amountToSend = "0.1";
 
+        let walletAddress = null;
+        
         function generateRandomNumbers() {
-    for (let i = 1; i <= 5; i++) {
-        const randomNumber = Math.floor(Math.random() * 69) + 1;
-        document.getElementById(`number${i}`).value = randomNumber;
-    }
+            const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-    const powerballNumber = Math.floor(Math.random() * 26) + 1;
-    document.getElementById('powerball').value = powerballNumber;
-}
+            const uniqueNumbers = new Set();
+            while (uniqueNumbers.size < 5) {
+                uniqueNumbers.add(randomNumber(1, 69));
+            }
 
+            const numbers = Array.from(uniqueNumbers);
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(number${i}).value = numbers[i - 1].toString().padStart(2, '0');
+            }
+
+            const powerball = randomNumber(1, 26);
+            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
+
+            const displayPowerball = document.getElementById('displayPowerball');
+            displayPowerball.textContent = Powerball: ${powerball.toString().padStart(2, '0')};
+        }
+        
 
         async function switchToCeloChain() {
     try {
