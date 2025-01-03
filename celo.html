@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Celo Number Lottery</title>
+    <title>CELO Number Lottery</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
@@ -203,9 +203,9 @@
             <p id="walletAddress">Not connected</p>
             <button onclick="copyWalletAddress()">Copy Address</button>
             <br>
-            <a id="etherscanLink" href="#" target="_blank">View on Celo Explorer</a>
+            <a id="etherscanLink" href="#" target="_blank">View on Etherscan</a>
         </div>
-        <h1>Celo Number Lottery</h1>
+        <h1>ETH Sepolia Testnet Number Lottery</h1>
         <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
 
         <div>
@@ -220,7 +220,7 @@
         <p id="displayPowerball"></p>
 
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
-        <button onclick="sendTransaction()">Buy 0.003 CELO</button>
+        <button onclick="sendTransaction()">Buy 0.0006 ETH</button>
 
         <div id="tickets">
             <h2>Your Tickets</h2>
@@ -230,142 +230,163 @@
         </div>
     </div>
 
-       <script>
     <script>
-    const recipientAddress = "0x289C354d857049d26FfFdb69EAB33A708407D9f8"; // Cambia esta dirección si es necesario
-    const amountToSend = "0.003"; // Cambia este monto si es necesario
+        const recipientAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73";
+        const amountToSend = "0.0006";
 
-    async function sendTransaction() {
-        const numbers = [];
-        for (let i = 1; i <= 5; i++) {
-            const value = document.getElementById(`number${i}`).value;
-            if (!value || isNaN(value) || value < 1 || value > 69) {
-                showAlert("Please enter valid numbers between 1 and 69.", "error");
+        let walletAddress = null;
+
+        function generateRandomNumbers() {
+            const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+            const uniqueNumbers = new Set();
+            while (uniqueNumbers.size < 5) {
+                uniqueNumbers.add(randomNumber(1, 69));
+            }
+
+            const numbers = Array.from(uniqueNumbers);
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
+            }
+
+            const powerball = randomNumber(1, 26);
+            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
+
+            const displayPowerball = document.getElementById('displayPowerball');
+            displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
+        }
+
+        function loadTicketsFromStorage() {
+            return JSON.parse(localStorage.getItem('tickets')) || [];
+        }
+
+        function saveTicketsToStorage(tickets) {
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+        }
+
+        function updateTicketList() {
+            const ticketList = document.getElementById("ticketList");
+            ticketList.innerHTML = "";
+            const tickets = loadTicketsFromStorage();
+
+            if (tickets.length === 0) {
+                ticketList.innerHTML = "<li>No tickets purchased yet.</li>";
+            } else {
+                tickets.forEach((ticket) => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `${ticket.numbers}, Powerball: ${ticket.powerball} <a href="https://sepolia.etherscan.io/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
+                    ticketList.appendChild(li);
+                });
+            }
+        }
+
+        function copyWalletAddress() {
+            if (walletAddress) {
+                navigator.clipboard.writeText(walletAddress).then(() => {
+                    showAlert("Wallet address copied to clipboard!", "success");
+                });
+            } else {
+                showAlert("Wallet is not connected.", "error");
+            }
+        }
+
+        async function sendTransaction() {
+    const numbers = [];
+    for (let i = 1; i <= 5; i++) {
+        const value = document.getElementById(`number${i}`).value;
+        if (!value || isNaN(value) || value < 1 || value > 69) {
+            showAlert("Please enter valid numbers between 1 and 69 for all selections.", "error");
+            return;
+        }
+        numbers.push(value.padStart(2, '0'));
+    }
+
+    const powerball = document.getElementById('powerball').value;
+    if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+        showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+        return;
+    }
+
+    const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
+
+    if (typeof window.ethereum !== 'undefined') {
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+
+            const network = await provider.getNetwork();
+            if (network.chainId !== 42220) { // Chain ID de la red Celo
+                showAlert("You are on the wrong network. Please switch to Celo.", "error");
                 return;
             }
-            numbers.push(value);
-        }
 
-        const powerball = document.getElementById('powerball').value;
-        if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
-            showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
-            return;
-        }
+            walletAddress = await signer.getAddress();
+            document.getElementById("walletAddress").textContent = walletAddress;
+            document.getElementById("etherscanLink").href = `https://explorer.celo.org/address/${walletAddress}`;
 
-        if (!window.ethereum) {
-            showAlert("MetaMask is not installed. Please install it to continue.", "error");
-            return;
-        }
+            const balance = await provider.getBalance(walletAddress);
+            const amountInWei = ethers.utils.parseEther(amountToSend);
 
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
+            if (balance.lt(amountInWei)) {
+                showAlert("Insufficient funds. Please ensure your wallet has enough CELO.", "error");
+                return;
+            }
 
-        // Crear el memo codificado en UTF-8
-        const memo = `Numbers: ${numbers.join(", ")} | Powerball: ${powerball}`;
-        const memoEncoded = ethers.utils.toUtf8Bytes(memo);
-
-        try {
-            // Enviar la transacción directamente a MetaMask
-            const transaction = await signer.sendTransaction({
+            const tx = {
                 to: recipientAddress,
-                value: ethers.utils.parseEther(amountToSend),
-                data: ethers.utils.hexlify(memoEncoded),
+                value: amountInWei,
+                data: ethers.utils.toUtf8Bytes(memo),
+            };
+
+            const transactionResponse = await signer.sendTransaction(tx);
+            showAlert(`Transaction sent! TX Hash: ${transactionResponse.hash}`, "success");
+
+            const tickets = loadTicketsFromStorage();
+            tickets.push({
+                numbers: numbers.join(", "),
+                powerball: powerball.padStart(2, '0'),
+                hash: transactionResponse.hash
             });
-
-            showAlert("Transaction sent! Waiting for confirmation...", "success");
-            await transaction.wait();
-
-            addTicketToList([...numbers, powerball]);
-            showAlert("Transaction confirmed! Your ticket has been added.", "success");
+            saveTicketsToStorage(tickets);
+            updateTicketList();
         } catch (error) {
-            console.error("Transaction error:", error);
-            showAlert("Transaction failed. Please try again.", "error");
+            showAlert(`Error: ${error.message}`, "error");
         }
+    } else {
+        showAlert("MetaMask is not installed. Please install it to proceed.", "error");
     }
+}
 
-    function addTicketToList(ticketNumbers) {
-        const ticketList = document.getElementById('ticketList');
-        const ticketItem = document.createElement('li');
-        ticketItem.textContent = `Numbers: ${ticketNumbers.slice(0, 5).join(", ")} | Powerball: ${ticketNumbers[5]}`;
-        ticketList.appendChild(ticketItem);
-    }
 
-    function showAlert(message, type) {
-        const alertBox = document.createElement('div');
-        alertBox.className = `alert alert-${type}`;
-        alertBox.textContent = message;
-        document.body.appendChild(alertBox);
+        function showAlert(message, type) {
+            const alert = document.createElement("div");
+            alert.className = "alert";
+            alert.style.backgroundColor = type === "success" ? "rgba(0, 128, 0, 0.8)" : "rgba(255, 0, 0, 0.8)";
+            alert.textContent = message;
+            document.body.appendChild(alert);
 
-        setTimeout(() => {
-            alertBox.remove();
-        }, 5000);
-    }
-
-    function generateRandomNumbers() {
-        const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-        const uniqueNumbers = new Set();
-        while (uniqueNumbers.size < 5) {
-            uniqueNumbers.add(randomNumber(1, 69));
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
         }
 
-        const numbers = Array.from(uniqueNumbers);
-        for (let i = 1; i <= 5; i++) {
-            document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
-        }
+        function updateTicketList() {
+    const ticketList = document.getElementById("ticketList");
+    ticketList.innerHTML = "";
+    const tickets = loadTicketsFromStorage();
 
-        const powerball = randomNumber(1, 26);
-        document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
-        }
-
-        if (!window.ethereum) {
-            showAlert("MetaMask is not installed. Please install it to continue.", "error");
-            return;
-        }
-
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-
-        // Crear el memo codificado en UTF-8
-        const memo = `Numbers: ${numbers.join(", ")} | Powerball: ${powerball}`;
-        const memoEncoded = ethers.utils.toUtf8Bytes(memo);
-
-        try {
-            // Enviar la transacción directamente a MetaMask
-            const transaction = await signer.sendTransaction({
-                to: recipientAddress,
-                value: ethers.utils.parseEther(amountToSend),
-                data: ethers.utils.hexlify(memoEncoded),
-            });
-
-            showAlert("Transaction sent! Waiting for confirmation...", "success");
-            await transaction.wait();
-
-            addTicketToList([...numbers, powerball]);
-            showAlert("Transaction confirmed! Your ticket has been added.", "success");
-        } catch (error) {
-            console.error("Transaction error:", error);
-            showAlert("Transaction failed. Please try again.", "error");
-        }
+    if (tickets.length === 0) {
+        ticketList.innerHTML = "<li>No tickets purchased yet.</li>";
+    } else {
+        tickets.forEach((ticket) => {
+            const li = document.createElement("li");
+            li.innerHTML = `${ticket.numbers}, Powerball: ${ticket.powerball} <a href="https://explorer.celo.org/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
+            ticketList.appendChild(li);
+        });
     }
+}
 
-    function addTicketToList(ticketNumbers) {
-        const ticketList = document.getElementById('ticketList');
-        const ticketItem = document.createElement('li');
-        ticketItem.textContent = `Numbers: ${ticketNumbers.slice(0, 5).join(", ")} | Powerball: ${ticketNumbers[5]}`;
-        ticketList.appendChild(ticketItem);
-    }
-
-    function showAlert(message, type) {
-        const alertBox = document.createElement('div');
-        alertBox.className = `alert alert-${type}`;
-        alertBox.textContent = message;
-        document.body.appendChild(alertBox);
-
-        setTimeout(() => {
-            alertBox.remove();
-        }, 5000);
-    }
     </script>
 </body>
 </html>
