@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CELO Number Lottery</title>
+    <title>Celo Number Lottery</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
@@ -12,7 +12,7 @@
             text-align: center;
             padding: 20px;
             margin: 0;
-            background: linear-gradient(to bottom, #2E8BC0, #B1D4E0);
+            background: linear-gradient(to bottom, #35D07F, #E3FFE8);
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -21,12 +21,20 @@
         }
 
         nav {
-            background-color: #4c68af;
+            background-color: #29A16D;
             padding: 10px;
-            width: 100%;
+            width: auto;
+            max-width: 100%;
             text-align: center;
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
             margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            margin: 4 auto;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
         }
 
         nav a {
@@ -34,6 +42,7 @@
             text-decoration: none;
             margin: 0 15px;
             font-size: 16px;
+            display: inline-block;
         }
 
         nav a:hover {
@@ -61,7 +70,7 @@
         }
 
         .wallet-info button {
-            background-color: #007BFF;
+            background-color: #29A16D;
             color: white;
             border: none;
             border-radius: 3px;
@@ -71,7 +80,7 @@
         }
 
         .wallet-info button:hover {
-            background-color: #0056b3;
+            background-color: #1E864A;
         }
 
         input[type="text"] {
@@ -84,7 +93,7 @@
             border-radius: 50%;
             font-size: 20px;
             font-weight: bold;
-            color: #2E8BC0;
+            color: #35D07F;
             background-color: #f9f9f9;
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
         }
@@ -99,7 +108,7 @@
         button {
             padding: 10px 20px;
             margin: 10px;
-            background-color: #4c68af;
+            background-color: #29A16D;
             color: rgb(255, 255, 255);
             border: none;
             border-radius: 5px;
@@ -107,7 +116,7 @@
         }
 
         button:hover {
-            background-color: #455fa0;
+            background-color: #1E864A;
         }
 
         #tickets {
@@ -137,7 +146,7 @@
         }
 
         a {
-            color: #007BFF;
+            color: #29A16D;
             text-decoration: none;
         }
 
@@ -182,7 +191,7 @@
 </head>
 <body>
     <nav>
-        <a href="#">Home</a>
+        <a href="index">Home</a>
         <a href="HowDoPlay">How Do Play</a>
         <a href="Prize">Prize</a>
         <a href="ClaimYourPrize">Claim</a>
@@ -194,9 +203,9 @@
             <p id="walletAddress">Not connected</p>
             <button onclick="copyWalletAddress()">Copy Address</button>
             <br>
-            <a id="explorerLink" href="#" target="_blank">View on CELO Explorer</a>
+            <a id="celoScanLink" href="#" target="_blank">View on CeloScan</a>
         </div>
-        <h1>CELO Number Lottery</h1>
+        <h1>Celo Number Lottery</h1>
         <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
 
         <div>
@@ -211,7 +220,7 @@
         <p id="displayPowerball"></p>
 
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
-        <button onclick="sendTransaction()">Buy 0.0006 CELO</button>
+        <button onclick="sendTransaction()">Buy 3 CELO</button>
 
         <div id="tickets">
             <h2>Your Tickets</h2>
@@ -222,146 +231,124 @@
     </div>
 
     <script>
-        const recipientAddress = "0x289C354d857049d26FfFdb69EAB33A708407D9f8"; // celo wallet
-        const amountToSend = "0.01";
+        const recipientAddress = "0x289C354d857049d26FfFdb69EAB33A708407D9f8";
+        const amountToSend = "3";
 
         let walletAddress = null;
 
-        function generateRandomNumbers() {
-            const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-            const uniqueNumbers = new Set();
-            while (uniqueNumbers.size < 5) {
-                uniqueNumbers.add(randomNumber(1, 69));
-            }
-
-            const numbers = Array.from(uniqueNumbers);
-            for (let i = 1; i <= 5; i++) {
-                document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
-            }
-
-            const powerball = randomNumber(1, 26);
-            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
-
-            const displayPowerball = document.getElementById('displayPowerball');
-            displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
-        }
-
-        function loadTicketsFromStorage() {
-            return JSON.parse(localStorage.getItem('tickets')) || [];
-        }
-
-        function saveTicketsToStorage(tickets) {
-            localStorage.setItem('tickets', JSON.stringify(tickets));
-        }
-
-        function updateTicketList() {
-            const ticketList = document.getElementById("ticketList");
-            ticketList.innerHTML = "";
-            const tickets = loadTicketsFromStorage();
-
-            if (tickets.length === 0) {
-                ticketList.innerHTML = "<li>No tickets purchased yet.</li>";
-            } else {
-                tickets.forEach((ticket) => {
-                    const li = document.createElement("li");
-                    li.innerHTML = `${ticket.numbers}, Powerball: ${ticket.powerball} <a href="https://explorer.celo.org/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
-                    ticketList.appendChild(li);
+        async function switchToCeloNetwork() {
+            try {
+                await window.ethereum.request({
+                    method: "wallet_addEthereumChain",
+                    params: [
+                        {
+                            chainId: "0xa4ec",
+                            chainName: "Celo Network",
+                            nativeCurrency: {
+                                name: "CELO",
+                                symbol: "CELO",
+                                decimals: 18
+                            },
+                            rpcUrls: ["https://forno.celo.org"],
+                            blockExplorerUrls: ["https://explorer.celo.org"]
+                        }
+                    ]
                 });
+            } catch (error) {
+                console.error("Error switching to Celo network:", error);
+            }
+        }
+
+        async function connectWallet() {
+            if (typeof window.ethereum !== "undefined") {
+                try {
+                    const accounts = await window.ethereum.request({
+                        method: "eth_requestAccounts"
+                    });
+                    walletAddress = accounts[0];
+                    document.getElementById("walletAddress").textContent = walletAddress;
+                    document.getElementById("celoScanLink").href = `https://explorer.celo.org/address/${walletAddress}`;
+                } catch (error) {
+                    console.error("Error connecting to wallet:", error);
+                }
+            } else {
+                alert("Please install a wallet extension like MetaMask.");
             }
         }
 
         function copyWalletAddress() {
             if (walletAddress) {
-                navigator.clipboard.writeText(walletAddress).then(() => {
-                    showAlert("Wallet address copied to clipboard!", "success");
-                });
+                navigator.clipboard.writeText(walletAddress)
+                    .then(() => {
+                        alert("Wallet address copied to clipboard!");
+                    })
+                    .catch((err) => {
+                        console.error("Error copying address:", err);
+                    });
             } else {
-                showAlert("Wallet is not connected.", "error");
+                alert("No wallet address to copy.");
             }
+        }
+
+        function generateRandomNumbers() {
+            let numbers = [];
+            while (numbers.length < 5) {
+                let randomNum = Math.floor(Math.random() * 69) + 1;
+                if (!numbers.includes(randomNum)) {
+                    numbers.push(randomNum);
+                }
+            }
+            const powerball = Math.floor(Math.random() * 26) + 1;
+
+            // Display the numbers in the input fields
+            for (let i = 0; i < numbers.length; i++) {
+                document.getElementById(`number${i + 1}`).value = numbers[i];
+            }
+            document.getElementById("powerball").value = powerball;
+
+            document.getElementById("displayPowerball").textContent = `Powerball: ${powerball}`;
         }
 
         async function sendTransaction() {
-            const numbers = [];
-            for (let i = 1; i <= 5; i++) {
-                const value = document.getElementById(`number${i}`).value;
-                if (!value || isNaN(value) || value < 1 || value > 69) {
-                    showAlert("Please enter valid numbers between 1 and 69 for all selections.", "error");
-                    return;
-                }
-                numbers.push(value.padStart(2, '0'));
-            }
-
-            const powerball = document.getElementById('powerball').value;
-            if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
-                showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+            if (!walletAddress) {
+                alert("Please connect your wallet first.");
                 return;
             }
 
-            const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
+            try {
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const signer = await provider.getSigner();
+                const transaction = await signer.sendTransaction({
+                    to: recipientAddress,
+                    value: ethers.parseUnits(amountToSend, 18)  // 0.003 CELO
+                });
 
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    const signer = provider.getSigner();
+                console.log("Transaction sent:", transaction);
+                alert("Transaction sent successfully!");
 
-                    const network = await provider.getNetwork();
-                    if (network.chainId !== 42220) { // Chain ID para CELO Mainnet
-                        showAlert("You are on the wrong network. Please switch to CELO Mainnet.", "error");
-                        return;
-                    }
-
-                    walletAddress = await signer.getAddress();
-                    document.getElementById("walletAddress").textContent = walletAddress;
-                    document.getElementById("explorerLink").href = `https://explorer.celo.org/address/${walletAddress}`;
-
-                    const balance = await provider.getBalance(walletAddress);
-                    const amountInWei = ethers.utils.parseEther(amountToSend);
-
-                    if (balance.lt(amountInWei)) {
-                        showAlert("Insufficient funds. Please ensure your wallet has enough CELO.", "error");
-                        return;
-                    }
-
-                    const tx = {
-                        to: recipientAddress,
-                        value: amountInWei,
-                        data: ethers.utils.toUtf8Bytes(memo),
-                    };
-
-                    const transactionResponse = await signer.sendTransaction(tx);
-                    showAlert(`Transaction sent! TX Hash: ${transactionResponse.hash}`, "success");
-
-                    const tickets = loadTicketsFromStorage();
-                    tickets.push({
-                        numbers: numbers.join(", "),
-                        powerball: powerball.padStart(2, '0'),
-                        hash: transactionResponse.hash
-                    });
-                    saveTicketsToStorage(tickets);
-                    updateTicketList();
-                } catch (error) {
-                    showAlert(`Error: ${error.message}`, "error");
-                }
-            } else {
-                showAlert("MetaMask is not installed. Please install it to proceed.", "error");
+                // Display ticket in the user's ticket list
+                addTicketToList();
+            } catch (error) {
+                console.error("Error sending transaction:", error);
+                alert("Failed to send transaction.");
             }
         }
 
-        function showAlert(message, type) {
-            const alert = document.createElement("div");
-            alert.className = "alert";
-            alert.style.backgroundColor = type === "success" ? "rgba(0, 128, 0, 0.8)" : "rgba(255, 0, 0, 0.8)";
-            alert.textContent = message;
-            document.body.appendChild(alert);
-
-            setTimeout(() => {
-                alert.remove();
-            }, 5000);
+        function addTicketToList() {
+            const ticketList = document.getElementById("ticketList");
+            const newTicket = document.createElement("li");
+            newTicket.textContent = `Ticket purchased for ${document.getElementById("number1").value}, ${document.getElementById("number2").value}, ${document.getElementById("number3").value}, ${document.getElementById("number4").value}, ${document.getElementById("number5").value} with Powerball: ${document.getElementById("powerball").value}.`;
+            ticketList.appendChild(newTicket);
         }
 
-        updateTicketList();
+        // Event listeners for wallet connection and network switch
+        window.addEventListener("load", () => {
+            if (typeof window.ethereum !== "undefined") {
+                connectWallet();
+            } else {
+                alert("Please install a wallet extension like MetaMask.");
+            }
+        });
     </script>
 </body>
 </html>
