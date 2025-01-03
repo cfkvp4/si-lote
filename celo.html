@@ -259,7 +259,7 @@
             }
         }
 
-        async function sendTransaction() {
+       async function sendTransaction() {
     const numbers = [];
     for (let i = 1; i <= 5; i++) {
         const value = document.getElementById(`number${i}`).value;
@@ -287,21 +287,12 @@
     const signer = provider.getSigner();
 
     try {
-        const balance = await provider.getBalance(await signer.getAddress());
-        const transactionCost = ethers.utils.parseEther(amountToSend);
-
-        // Check if balance is sufficient
-        if (balance.lt(transactionCost)) {
-            showAlert("Insufficient balance to complete this transaction.", "error");
-            return;
-        }
-
         const memo = `Numbers: ${numbers.join(", ")} | Powerball: ${powerball}`;
         const memoEncoded = ethers.utils.toUtf8Bytes(memo);
 
         const transaction = await signer.sendTransaction({
             to: recipientAddress,
-            value: transactionCost,
+            value: ethers.utils.parseEther(amountToSend),
             data: ethers.utils.hexlify(memoEncoded),
         });
 
@@ -312,9 +303,10 @@
         showAlert("Transaction confirmed! Your ticket has been added.", "success");
     } catch (error) {
         console.error("Transaction error:", error);
-        showAlert("Transaction failed. Please check your wallet and try again.", "error");
+        showAlert("Transaction failed. Please try again.", "error");
     }
 }
+
 
 
         function generateRandomNumbers() {
