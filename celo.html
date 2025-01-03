@@ -203,9 +203,9 @@
             <p id="walletAddress">Not connected</p>
             <button onclick="copyWalletAddress()">Copy Address</button>
             <br>
-            <a id="etherscanLink" href="#" target="_blank">View on Etherscan</a>
+            <a id="etherscanLink" href="#" target="_blank">View on Celo Explorer</a>
         </div>
-        <h1>ETH Sepolia Testnet Number Lottery</h1>
+        <h1>CELO Network Number Lottery</h1>
         <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
 
         <div>
@@ -220,7 +220,7 @@
         <p id="displayPowerball"></p>
 
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
-        <button onclick="sendTransaction()">Buy 0.0006 ETH</button>
+        <button onclick="sendTransaction()">Buy 0.1 CELO</button>
 
         <div id="tickets">
             <h2>Your Tickets</h2>
@@ -232,7 +232,7 @@
 
     <script>
         const recipientAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73";
-        const amountToSend = "0.0006";
+        const amountToSend = "0.1";
 
         let walletAddress = null;
 
@@ -274,7 +274,7 @@
             } else {
                 tickets.forEach((ticket) => {
                     const li = document.createElement("li");
-                    li.innerHTML = `${ticket.numbers}, Powerball: ${ticket.powerball} <a href="https://sepolia.etherscan.io/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
+                    li.innerHTML = `${ticket.numbers}, Powerball: ${ticket.powerball} <a href="https://explorer.celo.org/address/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
                     ticketList.appendChild(li);
                 });
             }
