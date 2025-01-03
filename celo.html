@@ -187,7 +187,6 @@
                 display: none;
             }
         }
-    
     </style>
 </head>
 <body>
@@ -204,9 +203,9 @@
             <p id="walletAddress">Not connected</p>
             <button onclick="copyWalletAddress()">Copy Address</button>
             <br>
-            <a id="explorerLink" href="#" target="_blank">View on Celo Explorer</a>
+            <a id="etherscanLink" href="#" target="_blank">View on Celo Explorer</a>
         </div>
-        <h1>Celo Network Number Lottery</h1>
+        <h1>Celo Number Lottery</h1>
         <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
 
         <div>
@@ -231,11 +230,37 @@
         </div>
     </div>
 
-    <script>
-        const recipientAddress = "0xeAc26dbDAD105F2e7Ff4339DFf88B11A868551E5";
-        const amountToSend = "0.01";
 
-        async function switchToCeloNetwork() {
+    <script>
+        // Cambiar esta dirección para modificar la dirección de recepción
+        const recipientAddress = "0x289C354d857049d26FfFdb69EAB33A708407D9f8"; 
+
+        // Cambiar este valor para modificar el monto de la transacción
+        const amountToSend = "0.01"; 
+
+        let walletAddress = null;
+
+        function generateRandomNumbers() {
+            const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+            const uniqueNumbers = new Set();
+            while (uniqueNumbers.size < 5) {
+                uniqueNumbers.add(randomNumber(1, 69));
+            }
+
+            const numbers = Array.from(uniqueNumbers);
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
+            }
+
+            const powerball = randomNumber(1, 26);
+            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
+
+            const displayPowerball = document.getElementById('displayPowerball');
+            displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
+        }
+
+        async function switchToCeloChain() {
             try {
                 await window.ethereum.request({
                     method: "wallet_addEthereumChain",
@@ -248,14 +273,14 @@
                                 symbol: "CELO",
                                 decimals: 18,
                             },
-                            rpcUrls: ["https://forno.celo.org/"],
-                            blockExplorerUrls: ["https://explorer.celo.org/"],
+                            rpcUrls: ["https://forno.celo.org"],
+                            blockExplorerUrls: ["https://explorer.celo.org"],
                         },
                     ],
                 });
             } catch (error) {
-                console.error("Error switching to Celo Network:", error);
-                showAlert("Failed to switch to Celo Network. Try manually.", "error");
+                console.error("Error switching to Celo network:", error);
+                showAlert("Could not switch to Celo network. Try manually.", "error");
             }
         }
 
@@ -281,7 +306,7 @@
                 return;
             }
 
-            await switchToCeloNetwork();
+            await switchToCeloChain();
 
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const signer = provider.getSigner();
@@ -305,26 +330,6 @@
                 console.error("Transaction error:", error);
                 showAlert("You don't have enough balance.", "error");
             }
-        }
-
-        function generateRandomNumbers() {
-            const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-            const uniqueNumbers = new Set();
-            while (uniqueNumbers.size < 5) {
-                uniqueNumbers.add(randomNumber(1, 69));
-            }
-
-            const numbers = Array.from(uniqueNumbers);
-            for (let i = 1; i <= 5; i++) {
-                document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
-            }
-
-            const powerball = randomNumber(1, 26);
-            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
-
-            const displayPowerball = document.getElementById('displayPowerball');
-            displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
         }
 
         function addTicketToList(ticketNumbers) {
@@ -365,8 +370,8 @@
                 const walletAddress = accounts[0];
                 document.getElementById('walletAddress').textContent = walletAddress;
 
-                const explorerLink = document.getElementById('explorerLink');
-                explorerLink.href = `https://explorer.celo.org/address/${walletAddress}`;
+                const etherscanLink = document.getElementById('etherscanLink');
+                etherscanLink.href = `https://explorer.celo.org/address/${walletAddress}`;
             } catch (error) {
                 console.error("Error connecting wallet:", error);
                 showAlert("Failed to connect wallet. Please try again.", "error");
