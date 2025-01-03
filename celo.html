@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Celo Number Lottery</title>
+    <title>CELO Mainnet Number Lottery</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
@@ -23,18 +23,10 @@
         nav {
             background-color: #4c68af;
             padding: 10px;
-            width: auto;
-            max-width: 100%;
+            width: 100%;
             text-align: center;
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
             margin-bottom: 20px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            margin: 4 auto;
-            border-radius: 15px;
-            display: flex;
-            justify-content: center;
         }
 
         nav a {
@@ -42,7 +34,6 @@
             text-decoration: none;
             margin: 0 15px;
             font-size: 16px;
-            display: inline-block;
         }
 
         nav a:hover {
@@ -203,9 +194,9 @@
             <p id="walletAddress">Not connected</p>
             <button onclick="copyWalletAddress()">Copy Address</button>
             <br>
-            <a id="explorerLink" href="#" target="_blank">View on Celo Explorer</a>
+            <a id="explorerLink" href="#" target="_blank">View on CELO Explorer</a>
         </div>
-        <h1>Celo Network Number Lottery</h1>
+        <h1>CELO Mainnet Number Lottery</h1>
         <p>Select 5 numbers from 1 to 69 and 1 Powerball number from 1 to 26:</p>
 
         <div>
@@ -231,149 +222,146 @@
     </div>
 
     <script>
-        const recipientAddress = "0x97c9a36994138842620B4eb7d436a083C9912F73";
-        const amountToSend = "3";
+        const recipientAddress = "0x289C354d857049d26FfFdb69EAB33A708407D9f8"; // Reemplaza con la dirección de tu contrato o billetera CELO
+        const amountToSend = "0.1";
+
+        let walletAddress = null;
 
         function generateRandomNumbers() {
-    for (let i = 1; i <= 5; i++) {
-        const randomNumber = Math.floor(Math.random() * 69) + 1;
-        document.getElementById(`number${i}`).value = randomNumber;
-    }
+            const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-    const powerballNumber = Math.floor(Math.random() * 26) + 1;
-    document.getElementById('powerball').value = powerballNumber;
-}
+            const uniqueNumbers = new Set();
+            while (uniqueNumbers.size < 5) {
+                uniqueNumbers.add(randomNumber(1, 69));
+            }
 
+            const numbers = Array.from(uniqueNumbers);
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
+            }
 
-        async function switchToCeloChain() {
-    try {
-        await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [
-                {
-                    chainId: "0xa4ec", // 42220 en decimal
-                    chainName: "Celo Mainnet",
-                    nativeCurrency: {
-                        name: "CELO",
-                        symbol: "CELO",
-                        decimals: 18,
-                    },
-                    rpcUrls: ["https://forno.celo.org"],
-                    blockExplorerUrls: ["https://explorer.celo.org/"],
-                },
-            ],
-        });
-    } catch (error) {
-        console.error("Error al cambiar a la red de Celo:", error);
-        showAlert("No se pudo cambiar a la red de Celo. Intenta manualmente.", "error");
-    }
-}
+            const powerball = randomNumber(1, 26);
+            document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
 
-async function sendTransaction() {
-    const numbers = [];
-    for (let i = 1; i <= 5; i++) {
-        const value = document.getElementById(`number${i}`).value;
-        if (!value || isNaN(value) || value < 1 || value > 69) {
-            showAlert("Please enter valid numbers between 1 and 69.", "error");
-            return;
+            const displayPowerball = document.getElementById('displayPowerball');
+            displayPowerball.textContent = `Powerball: ${powerball.toString().padStart(2, '0')}`;
         }
-        numbers.push(value);
-    }
 
-    const powerball = document.getElementById('powerball').value;
-    if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
-        showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
-        return;
-    }
+        function loadTicketsFromStorage() {
+            return JSON.parse(localStorage.getItem('tickets')) || [];
+        }
 
-    if (!window.ethereum) {
-        showAlert("MetaMask is not installed. Please install it to continue.", "error");
-        return;
-    }
+        function saveTicketsToStorage(tickets) {
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+        }
 
-    await switchToCeloChain();
+        function updateTicketList() {
+            const ticketList = document.getElementById("ticketList");
+            ticketList.innerHTML = "";
+            const tickets = loadTicketsFromStorage();
 
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
+            if (tickets.length === 0) {
+                ticketList.innerHTML = "<li>No tickets purchased yet.</li>";
+            } else {
+                tickets.forEach((ticket) => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `${ticket.numbers}, Powerball: ${ticket.powerball} <a href="https://explorer.celo.org/tx/${ticket.hash}" target="_blank">View Transaction</a>`;
+                    ticketList.appendChild(li);
+                });
+            }
+        }
 
-    const memo = `Numbers: ${numbers.join(", ")} | Powerball: ${powerball}`;
-    const memoEncoded = ethers.utils.toUtf8Bytes(memo);
+        function copyWalletAddress() {
+            if (walletAddress) {
+                navigator.clipboard.writeText(walletAddress).then(() => {
+                    showAlert("Wallet address copied to clipboard!", "success");
+                });
+            } else {
+                showAlert("Wallet is not connected.", "error");
+            }
+        }
 
-    try {
-        const transaction = await signer.sendTransaction({
-            to: recipientAddress,
-            value: ethers.utils.parseEther(String(amountToSend)), // Convertir siempre a string
-            data: ethers.utils.hexlify(memoEncoded),
-        });
+        async function sendTransaction() {
+            const numbers = [];
+            for (let i = 1; i <= 5; i++) {
+                const value = document.getElementById(`number${i}`).value;
+                if (!value || isNaN(value) || value < 1 || value > 69) {
+                    showAlert("Please enter valid numbers between 1 and 69 for all selections.", "error");
+                    return;
+                }
+                numbers.push(value.padStart(2, '0'));
+            }
 
-        showAlert("Transaction sent! Waiting for confirmation...", "success");
-        await transaction.wait();
+            const powerball = document.getElementById('powerball').value;
+            if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
+                showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
+                return;
+            }
 
-        addTicketToList([...numbers, powerball]);
-        showAlert("Transaction confirmed! Your ticket has been added.", "success");
-    } catch (error) {
-        console.error("Transaction error:", error);
-        showAlert("Transaction failed. Please check your wallet and try again.", "error");
-    }
-}
+            const memo = `${numbers.join(", ")}, Powerball: ${powerball.padStart(2, '0')}`;
 
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    const signer = provider.getSigner();
 
-        addTicketToList([...numbers, powerball]);
-        showAlert("Transaction confirmed! Your ticket has been added.", "success");
-    } catch (error) {
-        console.error("Transaction error:", error);
-        showAlert("Transaction failed. Please check your wallet and try again.", "error");
-    }
-}
+                    const network = await provider.getNetwork();
+                    if (network.chainId !== 42220) { // Chain ID para CELO Mainnet
+                        showAlert("You are on the wrong network. Please switch to CELO Mainnet.", "error");
+                        return;
+                    }
 
+                    walletAddress = await signer.getAddress();
+                    document.getElementById("walletAddress").textContent = walletAddress;
+                    document.getElementById("explorerLink").href = `https://explorer.celo.org/address/${walletAddress}`;
 
-function addTicketToList(ticketNumbers) {
-    const ticketList = document.getElementById('ticketList');
-    const ticketItem = document.createElement('li');
-    ticketItem.textContent = `Numbers: ${ticketNumbers.slice(0, 5).join(", ")} | Powerball: ${ticketNumbers[5]}`;
-    ticketList.appendChild(ticketItem);
-}
+                    const balance = await provider.getBalance(walletAddress);
+                    const amountInWei = ethers.utils.parseEther(amountToSend);
 
-function showAlert(message, type) {
-    const alertBox = document.createElement('div');
-    alertBox.className = `alert alert-${type}`;
-    alertBox.textContent = message;
-    document.body.appendChild(alertBox);
+                    if (balance.lt(amountInWei)) {
+                        showAlert("Insufficient funds. Please ensure your wallet has enough CELO.", "error");
+                        return;
+                    }
 
-    setTimeout(() => {
-        alertBox.remove();
-    }, 5000);
-}
+                    const tx = {
+                        to: recipientAddress,
+                        value: amountInWei,
+                        data: ethers.utils.toUtf8Bytes(memo),
+                    };
 
-function copyWalletAddress() {
-    const walletAddress = document.getElementById('walletAddress').textContent;
-    navigator.clipboard.writeText(walletAddress).then(() => {
-        showAlert("Wallet address copied to clipboard!", "success");
-    }).catch(() => {
-        showAlert("Failed to copy wallet address. Try again.", "error");
-    });
-}
+                    const transactionResponse = await signer.sendTransaction(tx);
+                    showAlert(`Transaction sent! TX Hash: ${transactionResponse.hash}`, "success");
 
-async function connectWallet() {
-    if (!window.ethereum) {
-        showAlert("MetaMask is not installed. Please install it to continue.", "error");
-        return;
-    }
+                    const tickets = loadTicketsFromStorage();
+                    tickets.push({
+                        numbers: numbers.join(", "),
+                        powerball: powerball.padStart(2, '0'),
+                        hash: transactionResponse.hash
+                    });
+                    saveTicketsToStorage(tickets);
+                    updateTicketList();
+                } catch (error) {
+                    showAlert(`Error: ${error.message}`, "error");
+                }
+            } else {
+                showAlert("MetaMask is not installed. Please install it to proceed.", "error");
+            }
+        }
 
-    try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const walletAddress = accounts[0];
-        document.getElementById('walletAddress').textContent = walletAddress;
+        function showAlert(message, type) {
+            const alert = document.createElement("div");
+            alert.className = "alert";
+            alert.style.backgroundColor = type === "success" ? "rgba(0, 128, 0, 0.8)" : "rgba(255, 0, 0, 0.8)";
+            alert.textContent = message;
+            document.body.appendChild(alert);
 
-        const etherscanLink = document.getElementById('etherscanLink');
-        etherscanLink.href = `https://explorer.celo.org/address/${walletAddress}`;
-    } catch (error) {
-        console.error("Error connecting wallet:", error);
-        showAlert("Failed to connect wallet. Please try again.", "error");
-    }
-}
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
 
-window.onload = connectWallet;
-</script>
+        updateTicketList();
+    </script>
 </body>
 </html>
