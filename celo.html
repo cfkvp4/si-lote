@@ -221,7 +221,7 @@
         <p id="displayPowerball"></p>
 
         <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
-        <button onclick="sendTransaction()">Buy 0.003 CELO</button>
+        <button onclick="sendTransaction()">Buy 0.1 CELO</button>
 
         <div id="tickets">
             <h2>Your Tickets</h2>
@@ -233,7 +233,7 @@
 
     <script>
         const recipientAddress = "0x289C354d857049d26FfFdb69EAB33A708407D9f8";
-        const amountToSend = "0.003";
+        const amountToSend = "0.1";
 
         async function switchToCeloNetwork() {
             try {
@@ -249,7 +249,7 @@
                                 decimals: 18,
                             },
                             rpcUrls: ["https://forno.celo.org/"],
-                            blockExplorerUrls: ["https://explorer.celo.org/"],
+                            blockExplorerUrls: ["https://celoscan.io/"],
                         },
                     ],
                 });
