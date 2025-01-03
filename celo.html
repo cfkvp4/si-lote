@@ -231,6 +231,7 @@
     </div>
 
        <script>
+    <script>
     const recipientAddress = "0x289C354d857049d26FfFdb69EAB33A708407D9f8"; // Cambia esta dirección si es necesario
     const amountToSend = "0.003"; // Cambia este monto si es necesario
 
@@ -249,6 +250,72 @@
         if (!powerball || isNaN(powerball) || powerball < 1 || powerball > 26) {
             showAlert("Please enter a valid Powerball number between 1 and 26.", "error");
             return;
+        }
+
+        if (!window.ethereum) {
+            showAlert("MetaMask is not installed. Please install it to continue.", "error");
+            return;
+        }
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+
+        // Crear el memo codificado en UTF-8
+        const memo = `Numbers: ${numbers.join(", ")} | Powerball: ${powerball}`;
+        const memoEncoded = ethers.utils.toUtf8Bytes(memo);
+
+        try {
+            // Enviar la transacción directamente a MetaMask
+            const transaction = await signer.sendTransaction({
+                to: recipientAddress,
+                value: ethers.utils.parseEther(amountToSend),
+                data: ethers.utils.hexlify(memoEncoded),
+            });
+
+            showAlert("Transaction sent! Waiting for confirmation...", "success");
+            await transaction.wait();
+
+            addTicketToList([...numbers, powerball]);
+            showAlert("Transaction confirmed! Your ticket has been added.", "success");
+        } catch (error) {
+            console.error("Transaction error:", error);
+            showAlert("Transaction failed. Please try again.", "error");
+        }
+    }
+
+    function addTicketToList(ticketNumbers) {
+        const ticketList = document.getElementById('ticketList');
+        const ticketItem = document.createElement('li');
+        ticketItem.textContent = `Numbers: ${ticketNumbers.slice(0, 5).join(", ")} | Powerball: ${ticketNumbers[5]}`;
+        ticketList.appendChild(ticketItem);
+    }
+
+    function showAlert(message, type) {
+        const alertBox = document.createElement('div');
+        alertBox.className = `alert alert-${type}`;
+        alertBox.textContent = message;
+        document.body.appendChild(alertBox);
+
+        setTimeout(() => {
+            alertBox.remove();
+        }, 5000);
+    }
+
+    function generateRandomNumbers() {
+        const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+        const uniqueNumbers = new Set();
+        while (uniqueNumbers.size < 5) {
+            uniqueNumbers.add(randomNumber(1, 69));
+        }
+
+        const numbers = Array.from(uniqueNumbers);
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`number${i}`).value = numbers[i - 1].toString().padStart(2, '0');
+        }
+
+        const powerball = randomNumber(1, 26);
+        document.getElementById('powerball').value = powerball.toString().padStart(2, '0');
         }
 
         if (!window.ethereum) {
