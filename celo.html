@@ -259,7 +259,7 @@
             }
         }
 
-       async function sendTransaction() {
+          async function sendTransaction() {
     const numbers = [];
     for (let i = 1; i <= 5; i++) {
         const value = document.getElementById(`number${i}`).value;
@@ -302,11 +302,17 @@
         addTicketToList([...numbers, powerball]);
         showAlert("Transaction confirmed! Your ticket has been added.", "success");
     } catch (error) {
-        console.error("Transaction error:", error);
-        showAlert("Transaction failed. Please try again.", "error");
+        console.error("Transaction error details:", error);
+
+        if (error.code === "INSUFFICIENT_FUNDS") {
+            showAlert("You don't have enough funds to complete this transaction.", "error");
+        } else if (error.code === "NETWORK_ERROR") {
+            showAlert("Network error. Please check your connection.", "error");
+        } else {
+            showAlert("Transaction failed. Please try again.", "error");
+        }
     }
 }
-
 
 
         function generateRandomNumbers() {
